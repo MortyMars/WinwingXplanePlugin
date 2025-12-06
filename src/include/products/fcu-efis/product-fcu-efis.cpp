@@ -3,7 +3,6 @@
 #include "appstate.h"
 #include "config.h"
 #include "dataref.h"
-//#include "packet-utils.h"
 #include "profiles/ff767-fcu-efis-profile.h"
 #include "profiles/ff777-fcu-efis-profile.h"
 #include "profiles/laminar-fcu-efis-profile.h"
@@ -44,12 +43,15 @@ void ProductFCUEfis::setProfileForCurrentAircraft() {
     } else if (LaminarFCUEfisProfile::IsEligible()) {
         profile = new LaminarFCUEfisProfile(this);
         profileReady = true;
-        // Ajout du Profil FF777
-    } else if (FF777FCUEfisProfile::IsEligible()) {
-        profile = new FF777FCUEfisProfile(this);
-        profileReady = true;
-    } else if (FF767FCUEfisProfile::IsEligible()) {
+    }
+    // Add profile FF767
+    else if (FF767FCUEfisProfile::IsEligible()) {
         profile = new FF767FCUEfisProfile(this);
+        profileReady = true;
+    }
+    // Add profile FF777
+    else if (FF777FCUEfisProfile::IsEligible()) {
+        profile = new FF777FCUEfisProfile(this);
         profileReady = true;
     }
 }

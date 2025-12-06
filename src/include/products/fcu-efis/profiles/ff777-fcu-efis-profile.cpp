@@ -206,8 +206,9 @@ FF777FCUEfisProfile::~FF777FCUEfisProfile() {
 }
 
 bool FF777FCUEfisProfile::IsEligible() {
+    
+    // Datarefs du B777 qui n'existent pas sur le B767
     return Dataref::getInstance()->exists("1-sim/ckpt/mcpApLButton/anim") ||
-           Dataref::getInstance()->exists("1-sim/ckpt/cptHsiRangeSwitch/anim") ||
            Dataref::getInstance()->exists("1-sim/output/mcp/ok");
 }
 

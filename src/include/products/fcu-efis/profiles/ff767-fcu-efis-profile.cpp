@@ -11,8 +11,14 @@
 #include <iomanip>
 #include <XPLMUtilities.h>
 
+// OK ==================================================================================================
+// CONSTRUCTEUR INITIALISANT LE PROFIL
 FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircraftProfile(product) {
     
+    // Traçage dans le Log.txt que le constructeur est bien appelé 
+    XPLMDebugString("===== FF767 PROFILE CONSTRUCTOR CALLED =====\n");
+    
+    // Initialisation de l'éclairage de la "casquette" ---------------------------------------
     Dataref::getInstance()->monitorExistingDataref<float>("lights/glareshield1_rhe",                            //OK????
                                                           [product](float brightness) {
         bool hasPower = Dataref::getInstance()->getCached<bool>("sim/cockpit2/autopilot/autopilot_has_power");  //OK
@@ -46,7 +52,7 @@ FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
         Dataref::getInstance()->executeChangedCallbacksForDataref("lights/glareshield1_rhe");                       //OK????
     });
 
-   // OK ========== LEDs =================================================================================================
+   // OK Gestion de l'allumage des LEDs ------------------------------------------------------
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/AP/lnavButton", [this, product](bool engaged) {
         product->setLedBrightness(FCUEfisLed::AP1_GREEN, engaged || isTestMode() ? 1 : 0);
     });
@@ -125,8 +131,8 @@ FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/AP/fd2Switcher", [this, product](bool on) {
         product->setLedBrightness(FCUEfisLed::EFISR_FD_GREEN, on || isTestMode() ? 1 : 0);
     });
-    // ========== Fin LEDs ============================================================================================
     
+    // Gestion de l'allumage des voyants de warning ------------------------------------------
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/cptCAUTION",
                                                          [this, product](bool isCaution) {
         bool isWarning = Dataref::getInstance()->getCached<bool>("1-sim/ckpt/lampsGlow/cptWARNING");
@@ -207,8 +213,11 @@ FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
     });
 }
 
-// Destructeur ====================================================================================
+
+// OK ==================================================================================================
+// DESTRUCTEUR
 FF767FCUEfisProfile::~FF767FCUEfisProfile() {
+    // Déconnexion des datarefs chargées
     Dataref::getInstance()->unbind("lights/glareshield1_rhe");                      //OK????
     Dataref::getInstance()->unbind("1-sim/electrical/gpuAvailable");                //OK????
     Dataref::getInstance()->unbind("sim/cockpit2/autopilot/autopilot_has_power");   //OK
@@ -239,15 +248,17 @@ FF767FCUEfisProfile::~FF767FCUEfisProfile() {
 }
 
 
-// OK ================================================================================================
+// OK ==================================================================================================
+// DÉTERMINATION SI LE PROFIL CORRESPOND À L'AVION CHARGÉ
 bool FF767FCUEfisProfile::IsEligible() {
-    return Dataref::getInstance()->exists("1-sim/AP/cmd_C_Button") ||
-           Dataref::getInstance()->exists("1-sim/efis/ctrlPanel/2/map3") ||
-           Dataref::getInstance()->exists("1-sim/ndpanel/2/hsiRangeRotary");
+    
+    // Rare dataref du B767 qui n'existe pas sur le B777
+    return Dataref::getInstance()->exists("1-sim/comm/AP/ap_disc");
 }
 
 
-// OK Datarefs =======================================================================================
+// OK ==================================================================================================
+// CONSTITUTION DE LA LISTE DES DATAREFS POUR L'AFFICHAGE
 const std::vector<std::string> &FF767FCUEfisProfile::displayDatarefs() const {
     static const std::vector<std::string> datarefs = {
         
@@ -296,7 +307,8 @@ const std::vector<std::string> &FF767FCUEfisProfile::displayDatarefs() const {
 }
 
 
-// OK Association Commandes / Boutons ================================================================
+// OK ==================================================================================================
+// ASSOCIATION DE COMMANDES AUX BOUTONS FCU/EFIS
 const std::unordered_map <uint16_t, FCUEfisButtonDef> &FF767FCUEfisProfile::buttonDefs() const {
     static const std::unordered_map<uint16_t, FCUEfisButtonDef> buttons = {
 
@@ -433,15 +445,16 @@ const std::unordered_map <uint16_t, FCUEfisButtonDef> &FF767FCUEfisProfile::butt
 
 
 // OK ================================================================================================
+// MISE À JOUR DES DONNÉES DANS LES AFFICHEURS
 void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
     auto datarefManager = Dataref::getInstance();
 
-    data.displayEnabled = datarefManager->getCached<bool>("sim/cockpit2/autopilot/autopilot_has_power"); //OK
+    data.displayEnabled = datarefManager->getCached<bool>("sim/cockpit2/autopilot/autopilot_has_power");//OK
     data.displayTest = isTestMode();
 
     // SPD ------------------------------------------------------------------------------
-    data.spdMach = datarefManager->getCached<bool>("1-sim/AP/iasmach");         //OK
-    float speed = datarefManager->getCached<float>("1-sim/AP/dig3/spdSetting"); //OK
+    data.spdMach = datarefManager->getCached<bool>("1-sim/AP/iasmach");                                 //OK
+    float speed = datarefManager->getCached<float>("1-sim/AP/dig3/spdSetting");                         //OK
 
     if (speed > 0) {
         std::stringstream ss;
@@ -459,7 +472,7 @@ void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
     data.spdManaged = false;
 
     // HDG ------------------------------------------------------------------------------
-    float heading = datarefManager->getCached<float>("1-sim/AP/hdgSetting");            //OK
+    float heading = datarefManager->getCached<float>("1-sim/AP/hdgSetting");                            //OK
     if (heading >= 0) {
         int hdgDisplay = static_cast<int>(heading) % 360;
         std::stringstream ss;
@@ -470,10 +483,10 @@ void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
     }
 
     data.hdgManaged = false;
-    data.hdgTrk = datarefManager->getCached<bool>("1-sim/AP/hdgConfButton") == false;   //OK
+    data.hdgTrk = datarefManager->getCached<bool>("1-sim/AP/hdgConfButton") == false;                   //OK
 
     // ALT ------------------------------------------------------------------------------
-    float altitude = datarefManager->getCached<float>("1-sim/AP/dig5/altSetting");      //OK
+    float altitude = datarefManager->getCached<float>("1-sim/AP/dig5/altSetting");                      //OK
     if (altitude >= 0) {
         int altInt = static_cast<int>(altitude);
         std::stringstream ss;
@@ -486,7 +499,7 @@ void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
     data.altManaged = false;
 
     // VS -------------------------------------------------------------------------------
-    float vs = datarefManager->getCached<float>("1-sim/AP/vviSetting");                 //OK
+    float vs = datarefManager->getCached<float>("1-sim/AP/vviSetting");                                 //OK
 
     data.vsMode = true;
     data.fpaMode = false;
@@ -509,8 +522,11 @@ void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
     for (int i = 0; i < 2; i++) {
         bool isCaptain = i == 0;
 
-        bool isBaroHpa = datarefManager->getCached<bool>(isCaptain ? "1-sim/efis/isBaroHpaL" : "1-sim/efis/isBaroHpaR"); // OK
-        float baroValue = datarefManager->getCached<float>(isCaptain ? "1-sim/gauges/baroINHg1_left" : "1-sim/gauges/baroINHg1_right"); // OK
+        bool isBaroHpa = datarefManager->getCached<bool>(isCaptain ?   "1-sim/efis/isBaroHpaL" :        //OK
+                                                                       "1-sim/efis/isBaroHpaR");        //OK
+        
+        float baroValue = datarefManager->getCached<float>(isCaptain ? "1-sim/gauges/baroINHg1_left" :  //OK
+                                                                       "1-sim/gauges/baroINHg1_right"); //OK
 
         EfisDisplayValue value = {
             .displayEnabled = data.displayEnabled,
@@ -534,7 +550,9 @@ void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
 
 
 // ================================================================================================
+// GESTION DE L'APPUI SUR UN BOUTON
 void FF767FCUEfisProfile::buttonPressed(const FCUEfisButtonDef *button, XPLMCommandPhase phase) {
+
     if (!button || button->dataref.empty() || phase == xplm_CommandContinue) {
         return;
     }
@@ -558,6 +576,7 @@ void FF767FCUEfisProfile::buttonPressed(const FCUEfisButtonDef *button, XPLMComm
 
 
 // ================================================================================================
+// MODE TEST
 bool FF767FCUEfisProfile::isTestMode() {
     return Dataref::getInstance()->get<int>("1-sim/testPanel/test1Button") == 2; //OK????
 }
