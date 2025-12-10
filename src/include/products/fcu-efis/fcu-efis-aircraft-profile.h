@@ -52,6 +52,7 @@ enum class FCUEfisDatarefType : unsigned char {
     EXECUTE_CMD_ONCE,
     BAROMETER_PILOT,
     BAROMETER_FO,
+    PUSH_BUTTON,    // for ff767-fcu-efis-profile
 };
 
 struct FCUEfisButtonDef {

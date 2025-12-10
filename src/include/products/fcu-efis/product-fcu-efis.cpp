@@ -43,15 +43,13 @@ void ProductFCUEfis::setProfileForCurrentAircraft() {
     } else if (LaminarFCUEfisProfile::IsEligible()) {
         profile = new LaminarFCUEfisProfile(this);
         profileReady = true;
-    }
-    // Add profile FF767
-    else if (FF767FCUEfisProfile::IsEligible()) {
-        profile = new FF767FCUEfisProfile(this);
-        profileReady = true;
-    }
-    // Add profile FF777
-    else if (FF777FCUEfisProfile::IsEligible()) {
+    } else if (FF777FCUEfisProfile::IsEligible()) {
+        // Add profiles FF777
         profile = new FF777FCUEfisProfile(this);
+        profileReady = true;
+    } else if (FF767FCUEfisProfile::IsEligible()) {
+        // Add profiles FF767
+        profile = new FF767FCUEfisProfile(this);
         profileReady = true;
     }
 }

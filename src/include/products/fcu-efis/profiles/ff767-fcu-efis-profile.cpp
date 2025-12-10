@@ -11,17 +11,19 @@
 #include <iomanip>
 #include <XPLMUtilities.h>
 
-// OK ==================================================================================================
+// =====================================================================================================
 // CONSTRUCTEUR INITIALISANT LE PROFIL
 FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircraftProfile(product) {
     
-    // Traçage dans le Log.txt que le constructeur est bien appelé 
+    // Log.txt debug info verifying the loading of FF767 profile
     XPLMDebugString("===== FF767 PROFILE CONSTRUCTOR CALLED =====\n");
     
     // Initialisation de l'éclairage de la "casquette" ---------------------------------------
     Dataref::getInstance()->monitorExistingDataref<float>("lights/glareshield1_rhe",                            //OK????
                                                           [product](float brightness) {
+        
         bool hasPower = Dataref::getInstance()->getCached<bool>("sim/cockpit2/autopilot/autopilot_has_power");  //OK
+        
         uint8_t target = hasPower ? brightness * 255 : 0;
         product->setLedBrightness(FCUEfisLed::BACKLIGHT, target);
         product->setLedBrightness(FCUEfisLed::EXPED_BACKLIGHT, target);
@@ -43,7 +45,7 @@ FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
 
     // We abuse the GPU dataref to trigger an update when the UI is closed.
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/electrical/gpuAvailable",                           //OK????
-                                                         [product](bool gpuHatchOpen) {
+                                                         [product](bool gpuDispo) {
         Dataref::getInstance()->executeChangedCallbacksForDataref("sim/cockpit2/autopilot/autopilot_has_power");    //OK
     });
 
@@ -61,8 +63,8 @@ FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
         product->setLedBrightness(FCUEfisLed::AP2_GREEN, engaged || isTestMode() ? 1 : 0);
     });
 
-    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/AP/eprButton", [this, product](bool armed) {
-        product->setLedBrightness(FCUEfisLed::ATHR_GREEN, armed || isTestMode() ? 1 : 0);
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/AP/atSwitcher", [this, product](bool armed) {
+        product->setLedBrightness(FCUEfisLed::ATHR_GREEN, !armed || isTestMode() ? 1 : 0);
     });
 
     Dataref::getInstance()->monitorExistingDataref<int>("1-sim/AP/locButton", [this, product](int armed) {
@@ -112,12 +114,6 @@ FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
         product->setLedBrightness(FCUEfisLed::EFISR_ARPT_GREEN, armed || isTestMode() ? 1 : 0);
     });
     
-    /*Dataref::getInstance()->monitorExistingDataref<int>("1-sim/AP/desengageLever", [this, product](int armed) {
-        product->setLedBrightness(FCUEfisLed::EFISL_LS_GREEN, (armed ? 0 : 1) || isTestMode() ? 1 : 0);
-    });
-    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/AP/desengageLever", [this, product](int armed) {
-        product->setLedBrightness(FCUEfisLed::EFISR_LS_GREEN, (armed ? 0 : 1) || isTestMode() ? 1 : 0);
-    });*/
     Dataref::getInstance()->monitorExistingDataref<int>("1-sim/AP/desengageLever", [this, product](int armed) {
         product->setLedBrightness(FCUEfisLed::EFISL_LS_GREEN, !armed || isTestMode() ? 1 : 0);
     });
@@ -126,10 +122,10 @@ FF767FCUEfisProfile::FF767FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
     });
     
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/AP/fd1Switcher", [this, product](bool on) {
-        product->setLedBrightness(FCUEfisLed::EFISL_FD_GREEN, on || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISL_FD_GREEN, !on || isTestMode() ? 1 : 0);
     });
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/AP/fd2Switcher", [this, product](bool on) {
-        product->setLedBrightness(FCUEfisLed::EFISR_FD_GREEN, on || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISR_FD_GREEN, !on || isTestMode() ? 1 : 0);
     });
     
     // Gestion de l'allumage des voyants de warning ------------------------------------------
@@ -248,79 +244,95 @@ FF767FCUEfisProfile::~FF767FCUEfisProfile() {
 }
 
 
-// OK ==================================================================================================
-// DÉTERMINATION SI LE PROFIL CORRESPOND À L'AVION CHARGÉ
+// =====================================================================================================
+// VÉRIFICATION QUE LE PROFIL CORRESPOND À L'AVION CHARGÉ
 bool FF767FCUEfisProfile::IsEligible() {
-    
-    // Rare dataref du B767 qui n'existe pas sur le B777
-    return Dataref::getInstance()->exists("1-sim/comm/AP/ap_disc");
+    return (Dataref::getInstance()->exists("1-sim/AP/cmd_C_Button") &&
+            !(Dataref::getInstance()->exists("1-sim/output/mcp/ok")));
 }
 
 
 // OK ==================================================================================================
-// CONSTITUTION DE LA LISTE DES DATAREFS POUR L'AFFICHAGE
+// CONSTITUTION DE LA LISTE DES DATAREFS SUIVIES POUR LA MÀJ DE L'AFFICHAGE
 const std::vector<std::string> &FF767FCUEfisProfile::displayDatarefs() const {
     static const std::vector<std::string> datarefs = {
         
         // MCP - Power
         "sim/cockpit2/autopilot/autopilot_has_power",                   //OK
-
+        "1-sim/AP/desengageLever"
+        
         // MCP - Speed
         "1-sim/AP/iasmach",                                             //OK
         //"777/autopilot/speed_mode", // SPD, FLCH, etc.
         "1-sim/AP/dig3/spdSetting",                                     //OK
-        "1-sim/output/mcp/fma_spd_mode",
-
+        //"1-sim/output/mcp/fma_spd_mode",                                // EXISTE ????
+        
         // MCP - Heading
         // "1-sim/output/mcp/isHdgTrg",
         "1-sim/AP/hdgConfButton",                                       //OK??
         "1-sim/AP/hdgSetting",                                          //OK
-        "1-sim/output/mcp/fma_hdg_mode",
-
+        //"1-sim/output/mcp/fma_hdg_mode",                                // EXISTE ????
+        
         // MCP - Altitude
         "1-sim/AP/dig5/altSetting",                                     //OK
-        "1-sim/output/mcp/fma_alt_mode",
-
+        //"1-sim/output/mcp/fma_alt_mode",                                // EXISTE ????
+        
         // MCP - Vertical Speed
         "1-sim/AP/vviSetting",                                          //OK
-        "1-sim/output/mcp/fma_vs_mode",
-
+        //"1-sim/output/mcp/fma_vs_mode",                                 // EXISTE ????
+        
         // EFIS - Barometric settings
         "1-sim/gauges/baroINHG1_left",                                  //OK
         "1-sim/gauges/baroINHG1_right",                                 //OK
         "1-sim/gauges/baroHPa1_left",                                   //OK
         "1-sim/gauges/baroHPa1_right",                                  //OK
+        "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_pilot",
+        "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_copilot",
+        "1-sim/ckpt/cptHsiStdButton/anim"
+        "1-sim/ckpt/foHsiStdButton/anim"
         
         "1-sim/efis/isBaroHpaL", // 0=inHg,1=hPa                        //OK
         "1-sim/efis/isBaroHpaR",                                        //OK
-
+        
         // ND Mode and Range
         "1-sim/efis/ctrlPanel/1/hsiModeRotary", // 0=APP,1=VOR,2=MAP,3=PLAN OK
         "1-sim/efis/ctrlPanel/2/hsiModeRotary",                           //OK
         "1-sim/ndpanel/1/hsiRangeRotary",       // 10,20,40,80,160,320,640  OK
         "1-sim/ndpanel/2/hsiRangeRotary",                                 //OK
-
+        
         "1-sim/testPanel/test1Button",                                  //OK????
+        
+        // ND Display options
+        "1-sim/ckpt/cptHsiWptButton/anim"
+        "1-sim/ckpt/cptHsiStaButton/anim"
+        "1-sim/ckpt/cptHsiDataButton/anim"
+        "1-sim/ckpt/cptHsiArptButton/anim"
+        "1-sim/ckpt/foHsiWptButton/anim"
+        "1-sim/ckpt/foHsiStaButton/anim"
+        "1-sim/ckpt/foHsiDataButton/anim"
+        "1-sim/ckpt/foHsiArptButton/anim"
+        
     };
 
     return datarefs;
 }
 
 
-// OK ==================================================================================================
+// =====================================================================================================
 // ASSOCIATION DE COMMANDES AUX BOUTONS FCU/EFIS
 const std::unordered_map <uint16_t, FCUEfisButtonDef> &FF767FCUEfisProfile::buttonDefs() const {
     static const std::unordered_map<uint16_t, FCUEfisButtonDef> buttons = {
 
         // MCP --------------------------------------------------------------------------
+        // Buttons
         {0, {"SPD",     "1-sim/command/AP/iasmach_button"}},            //OK
         {1, {"LOC",     "1-sim/comm/AP/locButton"}},                    //OK
-        // {2, {"HDG/TRK", "1-sim/command/mcpHdgTrkButton_button"}},    // don't exist on B767
+        // {2, {"HDG/TRK", "1-sim/command/mcpHdgTrkButton_button"}},    // does not exist on B767
         {3, {"AP1",     "1-sim/comm/AP/lnavButton"}},                   //OK
         {4, {"AP2",     "1-sim/comm/AP/vnavButton"}},                   //OK
         {5, {"A/THR",   "1-sim/command/AP/atSwitcher_trigger"}},        //OK
         {6, {"EXPED",   "1-sim/command/AP/cmd_L_Button_button"}},       //OK
-        // {7, {"VS/FPA",  "1-sim/command/mcpVsFpaButton_button"}},     // don't exist on B767
+        // {7, {"VS/FPA",  "1-sim/command/mcpVsFpaButton_button"}},     // does not exist on B767
         {8, {"APP",     "1-sim/comm/AP/appButton"}},                    //OK
 
         // Rotary encoders - Speed
@@ -332,13 +344,13 @@ const std::unordered_map <uint16_t, FCUEfisButtonDef> &FF767FCUEfisProfile::butt
         // Rotary encoders - Heading
         {13, {"HDG DEC",  "1-sim/comm/AP/hdgDN"}},                      //OK
         {14, {"HDG INC",  "1-sim/comm/AP/hdgUP"}},                      //OK
-        {15, {"HDG PUSH", "1-sim/command/AP/hdgConfButton_button"}},    //OK
-        {16, {"HDG HOLD", "1-sim/comm/AP/hdgHoldButton"}},              //OK
+        {15, {"HDG PUSH", "1-sim/command/AP/hdgConfButton_button"}},    //OK????
+        {16, {"HDG HOLD", "1-sim/comm/AP/hdgHoldButton"}},              //OK????
 
         // Rotary encoders - Altitude
         {17, {"ALT DEC",  "1-sim/comm/AP/altDN"}},                      //OK
         {18, {"ALT INC",  "1-sim/comm/AP/altUP"}},                      //OK
-        // {19, {"ALT PUSH", "1-sim/command/mcpAltRotary_push"}},       // don't exist on B767
+        // {19, {"ALT PUSH", "1-sim/command/mcpAltRotary_push"}},       // does not exist on B767
         {20, {"ALT HOLD", "1-sim/comm/AP/altHoldButton"}},              //OK
 
         // Rotary encoders - Vertical Speed
@@ -348,96 +360,143 @@ const std::unordered_map <uint16_t, FCUEfisButtonDef> &FF767FCUEfisProfile::butt
         //{24, },
 
         // Altitude par 100/1000
-        // {25, {"ALT 100",  "1-sim/command/mcpAltModeSwitch_set_0"}},  // don't exist on B767
-        // {26, {"ALT 1000", "1-sim/command/mcpAltModeSwitch_set_1"}},  // don't exist on B767
+        // {25, {"ALT 100",  "1-sim/command/mcpAltModeSwitch_set_0"}},  // does not exist on B767
+        // {26, {"ALT 1000", "1-sim/command/mcpAltModeSwitch_set_1"}},  // does not exist on B767
 
         
         // EFIS CAPT --------------------------------------------------------------------
+        // Buttons
         {32, {"L_FD",     "1-sim/command/AP/fd1Switcher_trigger"}},                 //OK
-        {33, {"AP DISC",  "1-sim/comm/AP/ap_disc"}},                                //OK
-
+        {33, {"AP DISC",  "1-sim/command/AP/desengageLever_button"}},               //OK
+        
         // ND Options
-        {34, {"L_DATA",   "1-sim/command/ckpt/cptHsiDataButton/anim_pushbutton"}},  //OK
-        {35, {"L_WPT",    "1-sim/command/ckpt/cptHsiWptButton/anim_pushbutton"}},   //OK
-        {36, {"L_STA",    "1-sim/command/ckpt/cptHsiStaButton/anim_pushbutton"}},   //OK
+        /* {34, {"L_DATA",   "1-sim/command/ckpt/cptHsiDataButton/anim_pushbutton"}},  //KO
+        {35, {"L_WPT",    "1-sim/command/ckpt/cptHsiWptButton/anim_pushbutton"}},   //KO
+        {36, {"L_STA",    "1-sim/command/ckpt/cptHsiStaButton/anim_pushbutton"}},   //KO
         //{37, },
-        {38, {"L_ARPT",   "1-sim/command/ckpt/cptHsiArptButton/anim_pushbutton"}},  //OK
-
+        {38, {"L_ARPT",   "1-sim/command/ckpt/cptHsiArptButton/anim_pushbutton"}},  //KO   */
+        
+        /*{34, {"L_DATA",   "1-sim/command/ndpanel/1/map4_button"}},  //KO
+        {35, {"L_WPT",    "1-sim/command/ndpanel/1/map5_button"}},   //KO
+        {36, {"L_STA",    "1-sim/command/ndpanel/1/map2_button"}},   //KO
+        //{37, },
+        {38, {"L_ARPT",   "1-sim/command/ndpanel/1/map3_button"}},  //KO */
+        
+        /*{34, {"L_DATA",   "1-sim/efis/ctrlPanel/1/map4",FCUEfisDatarefType::TOGGLE_VALUE, 0}},  //KO
+        {35, {"L_WPT",    "1-sim/efis/ctrlPanel/1/map5",FCUEfisDatarefType::TOGGLE_VALUE, 0}},   //KO
+        {36, {"L_STA",    "1-sim/efis/ctrlPanel/1/map2",FCUEfisDatarefType::TOGGLE_VALUE, 0}},   //KO
+        //{37, },
+        {38, {"L_ARPT",   "1-sim/efis/ctrlPanel/1/map3",FCUEfisDatarefType::TOGGLE_VALUE, 0}},  //KO */
+        
+        {34, {"L_DATA", "1-sim/ckpt/cptHsiDataButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        {35, {"L_WPT",  "1-sim/ckpt/cptHsiWptButton/anim",  FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        {36, {"L_STA",  "1-sim/ckpt/cptHsiStaButton/anim",  FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        //{37, },
+        {38, {"L_ARPT", "1-sim/ckpt/cptHsiArptButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        
         // BARO
-        {39, {"L_BARO PUSH", "1-sim/efis/isBaroStdL",FCUEfisDatarefType::SET_VALUE, 1.0}},  //Trough Dataref
-        {40, {"R_BARO PULL", "1-sim/efis/isBaroStdL",FCUEfisDatarefType::SET_VALUE, 0.0}},  //Trough Dataref
-        {41, {"L_BARO DEC",  "1-sim/command/gauges/baroRotary_left_rotary-"}},              //OK
-        {42, {"L_BARO INC",  "1-sim/command/gauges/baroRotary_left_rotary+"}},              //OK
-        {43, {"L_inHg",      "1-sim/efis/isBaroHpaL",FCUEfisDatarefType::SET_VALUE, 0.0}},  //Trough Dataref
-        {44, {"L_hPa",       "1-sim/efis/isBaroHpaL",FCUEfisDatarefType::SET_VALUE, 1.0}},  //Trough Dataref
-
-        // ND Mode selector - Commands not found —> go through Datarefs
-        {45, {"L_MODE APP",  "1-sim/efis/ctrlPanel/1/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 0.0}},
-        {46, {"L_MODE VOR",  "1-sim/efis/ctrlPanel/1/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 1.0}},
+        //{39, {"L_BARO PUSH", "1-sim/efis/isBaroStdL",FCUEfisDatarefType::TOGGLE_VALUE, 0}},  //KO
+        /*{40, {"R_BARO PULL", "1-sim/efis/isBaroStdL",FCUEfisDatarefType::SET_VALUE, 0}},  //KO
+        {41, {"L_BARO DEC",  "1-sim/command/gauges/baroRotary_left_rotary-"}},              //KO
+        {42, {"L_BARO INC",  "1-sim/command/gauges/baroRotary_left_rotary+"}},              //KO  */
+        
+        //{39, {"L_BARO PUSH", "sim/instruments/barometer_std"}},  //KO
+        //{40, {"R_BARO PULL", "1-sim/efis/isBaroStdL",FCUEfisDatarefType::SET_VALUE, 0}},  //KO
+        //{41, {"L_BARO DEC",  "sim/instruments/barometer_down"}},              //KO
+        //{42, {"L_BARO INC",  "sim/instruments/barometer_up"}},                //KO
+        
+        {39, {"L_BARO PUSH", "1-sim/ckpt/cptHsiStdButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        {40, {"L_BARO PULL", "1-sim/ckpt/cptHsiStdButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        {41, {"L_BARO DEC",  "custom", FCUEfisDatarefType::BAROMETER_PILOT, -1.0}},  // ← "custom" cf. Toliss
+        {42, {"L_BARO INC",  "custom", FCUEfisDatarefType::BAROMETER_PILOT, 1.0}},   // ← value > 0 = increase
+        
+        // Inverseur Baro
+        {43, {"L_inHg",      "1-sim/ckpt/cptHsiBaroModeRotary/anim",FCUEfisDatarefType::SET_VALUE, 0.0}},  //OKOK
+        {44, {"L_hPa",       "1-sim/ckpt/cptHsiBaroModeRotary/anim",FCUEfisDatarefType::SET_VALUE, 1.0}},  //OKOK
+        
+        // ND Mode selector
+        {45, {"L_MODE APP",  "1-sim/ckpt/cptHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0}},
+        {46, {"L_MODE VOR",  "1-sim/ckpt/cptHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1}},
         //{47, },
-        {48, {"L_MODE MAP",  "1-sim/efis/ctrlPanel/1/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 2.0}},
-        {49, {"L_MODE PLAN", "1-sim/efis/ctrlPanel/1/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 3.0}},
+        {48, {"L_MODE MAP",  "1-sim/ckpt/cptHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 2}},
+        {49, {"L_MODE PLAN", "1-sim/ckpt/cptHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 3}},
+        
+        // ND Range selector
+        {50, {"L_RANGE 10",  "1-sim/ckpt/cptHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0}},
+        {51, {"L_RANGE 20",  "1-sim/ckpt/cptHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1}},
+        {52, {"L_RANGE 40",  "1-sim/ckpt/cptHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 2}},
+        {53, {"L_RANGE 80",  "1-sim/ckpt/cptHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 3}},
+        {54, {"L_RANGE 160", "1-sim/ckpt/cptHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 4}},
+        {55, {"L_RANGE 320", "1-sim/ckpt/cptHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 5}},
 
-        // ND Range selector - Commands not found —> go through Datarefs
-        {50, {"L_RANGE 10",  "1-sim/ndpanel/1/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 10.0}},
-        {51, {"L_RANGE 20",  "1-sim/ndpanel/1/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 20.0}},
-        {52, {"L_RANGE 40",  "1-sim/ndpanel/1/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 40.0}},
-        {53, {"L_RANGE 80",  "1-sim/ndpanel/1/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 80.0}},
-        {54, {"L_RANGE 160", "1-sim/ndpanel/1/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 160.0}},
-        {55, {"L_RANGE 320", "1-sim/ndpanel/1/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 320.0}},
-
-        // VOR/ADF selectors - Commands not found —> go through Datarefs
-        {56, {"L_VORL VOR",  "1-sim/ckpt/cptHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1.0}},
-        {57, {"L_VORL OFF",  "1-sim/ckpt/cptHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0.0}},
-        {58, {"L_VORL ADF",  "1-sim/ckpt/cptHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1.0}},
-        {59, {"L_VORR VOR",  "1-sim/ckpt/cptHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1.0}},
-        {60, {"L_VORR OFF",  "1-sim/ckpt/cptHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0.0}},
-        {61, {"L_VORR ADF",  "1-sim/ckpt/cptHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1.0}},
+        // VOR/ADF selectors
+        {56, {"L_VORL VOR",  "1-sim/ckpt/cptHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1}}, //KO
+        {57, {"L_VORL OFF",  "1-sim/ckpt/cptHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0}}, //KO
+        {58, {"L_VORL ADF",  "1-sim/ckpt/cptHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1}}, //KO
+        {59, {"L_VORR VOR",  "1-sim/ckpt/cptHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1}}, //KO
+        {60, {"L_VORR OFF",  "1-sim/ckpt/cptHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0}}, //KO
+        {61, {"L_VORR ADF",  "1-sim/ckpt/cptHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1}}, //KO
         //{62, },
         //{63, },
 
         
         // EFIS FO ----------------------------------------------------------------------
-        {64, {"R_FD",     "1-sim/command/AP/fd2Switcher_trigger"}},                 //OK
-        {65, {"AP DISC",  "1-sim/comm/AP/ap_disc"}},                                //OK
+        // Buttons
+        {64, {"R_FD",     "1-sim/command/AP/fd2Switcher_trigger"}},                 //OKOK
+        {65, {"AP DISC",  "1-sim/command/AP/desengageLever_button"}},               //OKOK
 
-        // ND Options
-        {66, {"R_DATA",   "1-sim/command/ckpt/foHsiDataButton/anim_pushbutton"}},   //OK
-        {67, {"R_WPT",    "1-sim/command/ckpt/foHsiWptButton/anim_pushbutton"}},    //OK
-        {68, {"R_STA",    "1-sim/command/ckpt/foHsiStaButton/anim_pushbutton"}},    //OK
+        // ND Options Buttons
+        /*{66, {"R_DATA",   "1-sim/command/ckpt/foHsiDataButton/anim_pushbutton"}},   //KO
+        {67, {"R_WPT",    "1-sim/command/ckpt/foHsiWptButton/anim_pushbutton"}},    //KO
+        {68, {"R_STA",    "1-sim/command/ckpt/foHsiStaButton/anim_pushbutton"}},    //KO
         //{69, },
-        {70, {"R_ARPT",   "1-sim/command/ckpt/foHsiArptButton/anim_pushbutton"}},   //OK
+        {70, {"R_ARPT",   "1-sim/command/ckpt/foHsiArptButton/anim_pushbutton"}},   //KO */
+        
+        {66, {"R_DATA", "1-sim/ckpt/foHsiDataButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        {67, {"R_WPT",  "1-sim/ckpt/foHsiWptButton/anim",  FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        {68, {"R_STA",  "1-sim/ckpt/foHsiStaButton/anim",  FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        //{69, },
+        {70, {"R_ARPT", "1-sim/ckpt/foHsiArptButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
 
         // BARO
-        {71, {"R_BARO PUSH", "1-sim/efis/isBaroStdR",FCUEfisDatarefType::SET_VALUE, 1.0}},  //Trough Dataref
-        {72, {"R_BARO PULL", "1-sim/efis/isBaroStdR",FCUEfisDatarefType::SET_VALUE, 0.0}},  //Trough Dataref
-        {73, {"R_BARO DEC",  "1-sim/command/gauges/baroRotary_right_rotary-"}},             //OK
-        {74, {"R_BARO INC",  "1-sim/command/gauges/baroRotary_right_rotary+"}},             //OK
-        {75, {"R_inHg",      "1-sim/efis/isBaroHpaR",FCUEfisDatarefType::SET_VALUE, 0.0}},  //Trough Dataref
-        {76, {"R_hPa",       "1-sim/efis/isBaroHpaR",FCUEfisDatarefType::SET_VALUE, 1.0}},  //Trough Dataref
-
-        // ND Mode selector - Commands not found —> go through Datarefs
-        {77, {"R_MODE APP",  "1-sim/efis/ctrlPanel/2/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 0.0}},
-        {78, {"R_MODE VOR",  "1-sim/efis/ctrlPanel/2/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 1.0}},
+        /*{71, {"R_BARO PUSH", "1-sim/efis/isBaroStdR",FCUEfisDatarefType::SET_VALUE, 1.0}},  //KO
+        {72, {"R_BARO PULL", "1-sim/efis/isBaroStdR",FCUEfisDatarefType::SET_VALUE, 0.0}},  //KO
+        {73, {"R_BARO DEC",  "1-sim/command/gauges/baroRotary_right_rotary-"}},             //KO
+        {74, {"R_BARO INC",  "1-sim/command/gauges/baroRotary_right_rotary+"}},             //KO */
+        
+        {71, {"L_BARO PUSH", "1-sim/ckpt/foHsiStdButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        {72, {"L_BARO PULL", "1-sim/ckpt/foHsiStdButton/anim", FCUEfisDatarefType::PUSH_BUTTON, 0}},
+        //{71, {"R_BARO PUSH", "1-sim/efis/isBaroStdR", FCUEfisDatarefType::TOGGLE_VALUE, 0}},
+        //{72, {"R_BARO PULL", "1-sim/efis/isBaroStdR", FCUEfisDatarefType::SET_VALUE, 0.0}},
+        {73, {"R_BARO DEC",  "custom", FCUEfisDatarefType::BAROMETER_FO, -1.0}},
+        {74, {"R_BARO INC",  "custom", FCUEfisDatarefType::BAROMETER_FO, 1.0}},
+        
+        // Inverseur Baro
+        {75, {"R_inHg",      "1-sim/ckpt/foHsiBaroModeRotary/anim",FCUEfisDatarefType::SET_VALUE, 0.0}},  //OKOK
+        {76, {"R_hPa",       "1-sim/ckpt/foHsiBaroModeRotary/anim",FCUEfisDatarefType::SET_VALUE, 1.0}},  //OKOK
+        
+        // ND Mode selector
+        {77, {"R_MODE APP",  "1-sim/ckpt/foHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0}},
+        {78, {"R_MODE VOR",  "1-sim/ckpt/foHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1}},
         //{79, },
-        {80, {"R_MODE MAP",  "1-sim/efis/ctrlPanel/2/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 2.0}},
-        {81, {"R_MODE PLAN", "1-sim/efis/ctrlPanel/2/hsiModeRotary",FCUEfisDatarefType::SET_VALUE, 3.0}},
+        {80, {"R_MODE MAP",  "1-sim/ckpt/foHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 2}},
+        {81, {"R_MODE PLAN", "1-sim/ckpt/foHsiModeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 3}},
 
-        // ND Range selector - Command not found —> go through Dataref
-        {82, {"R_RANGE 10",  "1-sim/ndpanel/2/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 10.0}},
-        {83, {"R_RANGE 20",  "1-sim/ndpanel/2/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 20.0}},
-        {84, {"R_RANGE 40",  "1-sim/ndpanel/2/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 40.0}},
-        {85, {"R_RANGE 80",  "1-sim/ndpanel/2/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 80.0}},
-        {86, {"R_RANGE 160", "1-sim/ndpanel/2/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 160.0}},
-        {87, {"R_RANGE 320", "1-sim/ndpanel/2/hsiRangeRotary",FCUEfisDatarefType::SET_VALUE, 320.0}},
+        // ND Range selector
+        {82, {"R_RANGE 10",  "1-sim/ckpt/foHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0}},
+        {83, {"R_RANGE 20",  "1-sim/ckpt/foHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1}},
+        {84, {"R_RANGE 40",  "1-sim/ckpt/foHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 2}},
+        {85, {"R_RANGE 80",  "1-sim/ckpt/foHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 3}},
+        {86, {"R_RANGE 160", "1-sim/ckpt/foHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 4}},
+        {87, {"R_RANGE 320", "1-sim/ckpt/foHsiRangeSwitch/anim",FCUEfisDatarefType::SET_VALUE, 5}},
 
-        // VOR/ADF selectors - Command not found —> go through Dataref
-        {88, {"R_VORL VOR",  "1-sim/ckpt/foHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1.0}},
-        {89, {"R_VORL OFF",  "1-sim/ckpt/foHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0.0}},
-        {90, {"R_VORL ADF",  "1-sim/ckpt/foHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1.0}},
-        {91, {"R_VORR VOR",  "1-sim/ckpt/foHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1.0}},
-        {92, {"R_VORR OFF",  "1-sim/ckpt/foHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0.0}},
-        {93, {"R_VORR ADF",  "1-sim/ckpt/foHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1.0}},
+        // VOR/ADF selectors
+        {88, {"R_VORL VOR",  "1-sim/ckpt/foHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1.0}}, //KO
+        {89, {"R_VORL OFF",  "1-sim/ckpt/foHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0.0}}, //KO
+        {90, {"R_VORL ADF",  "1-sim/ckpt/foHsiVorLSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1.0}}, //KO
+        {91, {"R_VORR VOR",  "1-sim/ckpt/foHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 1.0}}, //KO
+        {92, {"R_VORR OFF",  "1-sim/ckpt/foHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, 0.0}}, //KO
+        {93, {"R_VORR ADF",  "1-sim/ckpt/foHsiVorRSwitch/anim",FCUEfisDatarefType::SET_VALUE, -1.0}}, //KO
 
     };
     return buttons;
@@ -519,14 +578,16 @@ void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
 
     data.latMode = true;
 
+    // BARO -----------------------------------------------------------------------------
     for (int i = 0; i < 2; i++) {
         bool isCaptain = i == 0;
 
-        bool isBaroHpa = datarefManager->getCached<bool>(isCaptain ?   "1-sim/efis/isBaroHpaL" :        //OK
-                                                                       "1-sim/efis/isBaroHpaR");        //OK
+        bool isBaroHpa = datarefManager->getCached<bool>(isCaptain ?   "1-sim/efis/isBaroHpaL" : "1-sim/efis/isBaroHpaR"); //OK
         
-        float baroValue = datarefManager->getCached<float>(isCaptain ? "1-sim/gauges/baroINHg1_left" :  //OK
-                                                                       "1-sim/gauges/baroINHg1_right"); //OK
+        //float baroValue = datarefManager->getCached<float>(isCaptain ? "1-sim/gauges/baroINHg1_left" :
+        //                                                               "1-sim/gauges/baroINHg1_right"); //OK
+        
+        float baroValue = datarefManager->getCached<float>(isCaptain ? "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_pilot" : "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_copilot");    //OK????
 
         EfisDisplayValue value = {
             .displayEnabled = data.displayEnabled,
@@ -551,6 +612,7 @@ void FF767FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
 
 // ================================================================================================
 // GESTION DE L'APPUI SUR UN BOUTON
+/*
 void FF767FCUEfisProfile::buttonPressed(const FCUEfisButtonDef *button, XPLMCommandPhase phase) {
 
     if (!button || button->dataref.empty() || phase == xplm_CommandContinue) {
@@ -560,6 +622,81 @@ void FF767FCUEfisProfile::buttonPressed(const FCUEfisButtonDef *button, XPLMComm
     auto datarefManager = Dataref::getInstance();
 
     if (phase == xplm_CommandBegin && button->datarefType == FCUEfisDatarefType::SET_VALUE) {
+        datarefManager->set<float>(button->dataref.c_str(), button->value);
+    }
+
+    else if (phase == xplm_CommandBegin && button->datarefType == FCUEfisDatarefType::TOGGLE_VALUE) {
+        int currentValue = datarefManager->get<int>(button->dataref.c_str());
+        int newValue = currentValue ? 0 : 1;
+        datarefManager->set<int>(button->dataref.c_str(), newValue);
+    }
+
+    else if (phase == xplm_CommandBegin && button->datarefType == FCUEfisDatarefType::EXECUTE_CMD_ONCE) {
+        datarefManager->executeCommand(button->dataref.c_str());
+    }
+} */
+
+void FF767FCUEfisProfile::buttonPressed(const FCUEfisButtonDef *button, XPLMCommandPhase phase) {
+    if (!button || button->dataref.empty() || phase == xplm_CommandContinue) {
+        return;
+    }
+
+    auto datarefManager = Dataref::getInstance();
+    
+    // ========== MOMENTARY PUSH (nouveau) ==========
+        if (button->datarefType == FCUEfisDatarefType::PUSH_BUTTON) {
+            if (phase == xplm_CommandBegin) {
+                // Appui : set à 1
+                datarefManager->set<float>(button->dataref.c_str(), 1.0f);
+            } else if (phase == xplm_CommandEnd) {
+                // Relâchement : set à 0
+                datarefManager->set<float>(button->dataref.c_str(), 0.0f);
+            }
+            return;  // Important : sortir ici
+        }
+        
+        // Ne pas continuer si phase == Continue pour les autres types
+        if (phase == xplm_CommandContinue) {
+            return;
+        }
+
+    // ========== GESTION BAROMÈTRE ==========
+    if (phase == xplm_CommandBegin &&
+        (button->datarefType == FCUEfisDatarefType::BAROMETER_PILOT ||
+         button->datarefType == FCUEfisDatarefType::BAROMETER_FO)) {
+        
+        bool isCaptain = button->datarefType == FCUEfisDatarefType::BAROMETER_PILOT;
+        
+        // Vérifier si on est en mode STD
+        bool isStd = datarefManager->getCached<bool>(isCaptain ? "1-sim/efis/isBaroStdL" : "1-sim/efis/isBaroStdR");
+        if (isStd) {
+            return;  // Pas d'incrémentation en mode STD
+        }
+
+        // Vérifier si on est en hPa ou inHg
+        bool isBaroHpa = datarefManager->getCached<bool>(isCaptain ? "1-sim/efis/isBaroHpaL" : "1-sim/efis/isBaroHpaR");
+        
+        // Dataref de la valeur baro
+        const char *datarefName = isCaptain ? "1-sim/gauges/baroINHg1_left" : "1-sim/gauges/baroINHg1_right";
+        float baroValue = datarefManager->getCached<float>(datarefName);
+        
+        bool increase = button->value > 0;
+
+        if (isBaroHpa) {
+            // Mode hPa : incrémenter de ±1 hPa
+            float hpaValue = baroValue * 33.8639f;  // Conversion inHg → hPa
+            hpaValue += increase ? 1.0f : -1.0f;
+            baroValue = hpaValue / 33.8639f;        // Reconversion hPa → inHg
+        } else {
+            // Mode inHg : incrémenter de ±0.01
+            baroValue += increase ? 0.01f : -0.01f;
+        }
+
+        datarefManager->set<float>(datarefName, baroValue);
+    }
+    
+    // ========== AUTRES TYPES ==========
+    else if (phase == xplm_CommandBegin && button->datarefType == FCUEfisDatarefType::SET_VALUE) {
         datarefManager->set<float>(button->dataref.c_str(), button->value);
     }
 
