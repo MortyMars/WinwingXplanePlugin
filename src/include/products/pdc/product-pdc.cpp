@@ -79,6 +79,18 @@ void ProductPDC::setLedBrightness(PDCLed led, uint8_t brightness) {
     writeData({0x02, identifierByte, 0xBB, 0x00, 0x00, 0x03, 0x49, static_cast<uint8_t>(led), brightness, 0x00, 0x00, 0x00, 0x00, 0x00});
 }
 
+void ProductPDC::update() {
+    if (!connected) {
+        return;
+    }
+
+    USBDevice::update();
+
+    if (profile) {
+        profile->update();
+    }
+}
+
 void ProductPDC::didReceiveData(int reportId, uint8_t *report, int reportLength) {
     if (!connected || !profile || !report || reportLength <= 0) {
         return;
@@ -127,6 +139,10 @@ void ProductPDC::didReceiveData(int reportId, uint8_t *report, int reportLength)
 
 void ProductPDC::didReceiveButton(uint16_t hardwareButtonIndex, bool pressed, uint8_t count) {
     USBDevice::didReceiveButton(hardwareButtonIndex, pressed, count);
+
+    if (!connected || !profile) {
+        return;
+    }
 
     bool isDeviceVariant3N = deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || deviceVariant == PDCDeviceVariant::VARIANT_3N_FIRSTOFFICER;
 

@@ -11,7 +11,9 @@ enum class PDCDatarefType : unsigned char {
     EXECUTE_CMD_ONCE = 1,
     EXECUTE_CMD_PHASED,
     SET_VALUE,
-    SET_VALUE_USING_COMMANDS
+    SET_VALUE_USING_COMMANDS,
+    ADD_MINIMUMS_REPEATING,
+    ADD_BARO_REPEATING
 };
 
 struct PDCButtonDef {
@@ -43,12 +45,14 @@ namespace std {
 class PDCAircraftProfile {
     protected:
         ProductPDC *product;
+        std::unordered_map<std::string, int> datarefChangedCache = {};
 
     public:
         PDCAircraftProfile(ProductPDC *product) : product(product) {};
         virtual ~PDCAircraftProfile() = default;
 
         virtual const std::unordered_map<PDCButtonIndex3N3M, PDCButtonDef> &buttonDefs() const = 0;
+        virtual void update() = 0;
         virtual void buttonPressed(const PDCButtonDef *button, XPLMCommandPhase phase) = 0;
 };
 

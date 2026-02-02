@@ -101,6 +101,10 @@ const std::unordered_map<PDCButtonIndex3N3M, PDCButtonDef> &FF777PDCProfile::but
         .first->second;
 }
 
+void FF777PDCProfile::update() {
+    // No periodic updates
+}
+
 void FF777PDCProfile::buttonPressed(const PDCButtonDef *button, XPLMCommandPhase phase) {
     if (!button || button->dataref.empty() || phase == xplm_CommandContinue) {
         return;

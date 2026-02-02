@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <XPLMProcessing.h>
 
 ZiboPDCProfile::ZiboPDCProfile(ProductPDC *product) : PDCAircraftProfile(product) {
     Dataref::getInstance()->monitorExistingDataref<std::vector<float>>("laminar/B738/electric/panel_brightness", [this, product](std::vector<float> panelBrightness) {
@@ -95,15 +96,27 @@ const std::unordered_map<PDCButtonIndex3N3M, PDCButtonDef> &ZiboPDCProfile::butt
                         {{37, -1}, {"3N Map range 320", "laminar/B738/EFIS/" + pilotSide + "/map_range", PDCDatarefType::SET_VALUE, 6.0}},
                         {{38, -1}, {"3N Map range 640", "laminar/B738/EFIS/" + pilotSide + "/map_range", PDCDatarefType::SET_VALUE, 7.0}},
                         {{19, 32}, {"Mins knob left fast", std::string("laminar/B738/pfd/dh_") + pilotOrCopilot + "_dn", PDCDatarefType::EXECUTE_CMD_PHASED}},
-                        {{39, 33}, {"Mins knob left slow", std::string("laminar/B738/pfd/dh_") + pilotOrCopilot + "_dn", PDCDatarefType::EXECUTE_CMD_PHASED}},
+                        {{39, 33}, {"Mins knob left slow", "custom", PDCDatarefType::ADD_MINIMUMS_REPEATING, -1.0}},
                         {{40, 34}, {"Mins knob center", ""}},
-                        {{41, 35}, {"Mins knob right slow", std::string("laminar/B738/pfd/dh_") + pilotOrCopilot + "_up", PDCDatarefType::EXECUTE_CMD_PHASED}},
+                        {{41, 35}, {"Mins knob right slow", "custom", PDCDatarefType::ADD_MINIMUMS_REPEATING, 1.0}},
                         {{20, 36}, {"Mins knob right fast", std::string("laminar/B738/pfd/dh_") + pilotOrCopilot + "_up", PDCDatarefType::EXECUTE_CMD_PHASED}},
-                        {{42, 37}, {"Baro knob left slow", std::string("laminar/B738/") + pilotOrCopilot + "/barometer_down"}},
-                        {{43, 38}, {"Baro knob center", ""}},
-                        {{44, 39}, {"Baro knob right slow", std::string("laminar/B738/") + pilotOrCopilot + "/barometer_up"}},
+                        {{42, 37}, {"Baro knob left slow", "", PDCDatarefType::ADD_BARO_REPEATING, -1.0}},
+                        {{43, 38}, {"Baro knob center", "custom"}},
+                        {{44, 39}, {"Baro knob right slow", "custom", PDCDatarefType::ADD_BARO_REPEATING, 1.0}},
                     })
         .first->second;
+}
+
+void ZiboPDCProfile::update() {
+    if (minimumsDelta != 0 && XPLMGetElapsedTime() - minimumsLastCommandTime >= 0.1f) {
+        minimumsLastCommandTime = XPLMGetElapsedTime();
+        changeMinimums();
+    }
+
+    if (baroDelta != 0 && XPLMGetElapsedTime() - baroLastCommandTime >= 0.1f) {
+        baroLastCommandTime = XPLMGetElapsedTime();
+        changeBaro();
+    }
 }
 
 void ZiboPDCProfile::buttonPressed(const PDCButtonDef *button, XPLMCommandPhase phase) {
@@ -113,7 +126,15 @@ void ZiboPDCProfile::buttonPressed(const PDCButtonDef *button, XPLMCommandPhase 
 
     auto datarefManager = Dataref::getInstance();
 
-    if (phase == xplm_CommandBegin && button->datarefType == PDCDatarefType::SET_VALUE_USING_COMMANDS) {
+    if (button->datarefType == PDCDatarefType::ADD_BARO_REPEATING) {
+        baroDelta = phase == xplm_CommandBegin ? static_cast<char>(button->value) : 0;
+        baroLastCommandTime = XPLMGetElapsedTime() + 1.0f;
+        changeBaro();
+    } else if (button->datarefType == PDCDatarefType::ADD_MINIMUMS_REPEATING) {
+        minimumsDelta = phase == xplm_CommandBegin ? static_cast<char>(button->value) : 0;
+        minimumsLastCommandTime = XPLMGetElapsedTime() + 1.0f;
+        changeMinimums();
+    } else if (phase == xplm_CommandBegin && button->datarefType == PDCDatarefType::SET_VALUE_USING_COMMANDS) {
         std::stringstream ss(button->dataref);
         std::string item;
         std::vector<std::string> parts;
@@ -146,4 +167,34 @@ void ZiboPDCProfile::buttonPressed(const PDCButtonDef *button, XPLMCommandPhase 
     } else if (button->datarefType == PDCDatarefType::EXECUTE_CMD_PHASED) {
         datarefManager->executeCommand(button->dataref.c_str(), phase);
     }
+}
+
+void ZiboPDCProfile::changeMinimums() {
+    if (minimumsDelta == 0) {
+        return;
+    }
+
+    std::string dataref = std::string("laminar/B738/pfd/dh_") + (product->deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || product->deviceVariant == PDCDeviceVariant::VARIANT_3M_CAPTAIN ? "pilot" : "copilot");
+    auto datarefManager = Dataref::getInstance();
+    float currentMins = datarefManager->get<float>(dataref.c_str());
+    currentMins += minimumsDelta;
+    datarefManager->set<float>(dataref.c_str(), currentMins);
+}
+
+void ZiboPDCProfile::changeBaro() {
+    if (baroDelta == 0) {
+        return;
+    }
+
+    std::string dataref = std::string("laminar/B738/EFIS/baro_sel_in_hg_") + (product->deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || product->deviceVariant == PDCDeviceVariant::VARIANT_3M_CAPTAIN ? "pilot" : "copilot");
+    bool isHPA = Dataref::getInstance()->get<bool>((std::string("laminar/B738/EFIS_control/") + (product->deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || product->deviceVariant == PDCDeviceVariant::VARIANT_3M_CAPTAIN ? "capt" : "fo") + "/baro_in_hpa").c_str());
+
+    auto datarefManager = Dataref::getInstance();
+    float currentBaroInHg = datarefManager->get<float>(dataref.c_str());
+    if (isHPA) {
+        currentBaroInHg += baroDelta * 0.02953f;
+    } else {
+        currentBaroInHg += baroDelta;
+    }
+    datarefManager->set<float>(dataref.c_str(), currentBaroInHg);
 }

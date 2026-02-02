@@ -13,6 +13,7 @@ class FF777PDCProfile : public PDCAircraftProfile {
         static bool IsEligible();
         const std::unordered_map<PDCButtonIndex3N3M, PDCButtonDef> &buttonDefs() const override;
 
+        void update() override;
         void buttonPressed(const PDCButtonDef *button, XPLMCommandPhase phase) override;
 };
 
