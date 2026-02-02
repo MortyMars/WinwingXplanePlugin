@@ -3,7 +3,9 @@
 #include "appstate.h"
 #include "dataref.h"
 #include "plugins-menu.h"
+#include "profiles/ff777-ursa-minor-throttle-profile.h"
 #include "profiles/toliss-ursa-minor-throttle-profile.h"
+#include "profiles/zibo-ursa-minor-throttle-profile.h"
 #include "segment-display.h"
 
 #include <algorithm>
@@ -35,6 +37,12 @@ const char *ProductUrsaMinorThrottle::classIdentifier() {
 void ProductUrsaMinorThrottle::setProfileForCurrentAircraft() {
     if (TolissUrsaMinorThrottleProfile::IsEligible()) {
         profile = new TolissUrsaMinorThrottleProfile(this);
+        profileReady = true;
+    } else if (FF777UrsaMinorThrottleProfile::IsEligible()) {
+        profile = new FF777UrsaMinorThrottleProfile(this);
+        profileReady = true;
+    } else if (ZiboUrsaMinorThrottleProfile::IsEligible()) {
+        profile = new ZiboUrsaMinorThrottleProfile(this);
         profileReady = true;
     } else {
         profile = nullptr;
@@ -294,6 +302,10 @@ void ProductUrsaMinorThrottle::didReceiveData(int reportId, uint8_t *report, int
 
 void ProductUrsaMinorThrottle::didReceiveButton(uint16_t hardwareButtonIndex, bool pressed, uint8_t count) {
     USBDevice::didReceiveButton(hardwareButtonIndex, pressed, count);
+
+    if (!connected || !profile) {
+        return;
+    }
 
     auto &buttons = profile->buttonDefs();
     auto it = buttons.find(hardwareButtonIndex);

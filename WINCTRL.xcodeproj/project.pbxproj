@@ -73,6 +73,10 @@
 		F6A77E752ED3514600061D03 /* product-agp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6A77E702ED3514600061D03 /* product-agp.cpp */; };
 		F6A77E792ED3620600061D03 /* segment-display.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6A77E782ED3620600061D03 /* segment-display.cpp */; };
 		F6A77E7A2ED3620600061D03 /* segment-display.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6A77E782ED3620600061D03 /* segment-display.cpp */; };
+		F6AAEE222F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6AAEE212F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp */; };
+		F6AAEE232F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6AAEE1F2F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp */; };
+		F6AAEE242F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6AAEE212F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp */; };
+		F6AAEE252F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6AAEE1F2F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp */; };
 		F6AF9EC12D06F84900530297 /* dataref.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6AF9EBC2D06F84900530297 /* dataref.cpp */; };
 		F6AF9EC62D078DB000530297 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6AF9EC52D078DB000530297 /* Cocoa.framework */; };
 		F6AF9ECC2D078ED400530297 /* appstate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6AF9ECB2D078ED400530297 /* appstate.cpp */; };
@@ -201,6 +205,10 @@
 		F6A77E702ED3514600061D03 /* product-agp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "product-agp.cpp"; sourceTree = "<group>"; };
 		F6A77E772ED3620600061D03 /* segment-display.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "segment-display.h"; sourceTree = "<group>"; };
 		F6A77E782ED3620600061D03 /* segment-display.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "segment-display.cpp"; sourceTree = "<group>"; };
+		F6AAEE1E2F261A790020CF32 /* ff777-ursa-minor-throttle-profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ff777-ursa-minor-throttle-profile.h"; sourceTree = "<group>"; };
+		F6AAEE1F2F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "ff777-ursa-minor-throttle-profile.cpp"; sourceTree = "<group>"; };
+		F6AAEE202F261A790020CF32 /* zibo-ursa-minor-throttle-profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "zibo-ursa-minor-throttle-profile.h"; sourceTree = "<group>"; };
+		F6AAEE212F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "zibo-ursa-minor-throttle-profile.cpp"; sourceTree = "<group>"; };
 		F6AF9EBB2D06F84900530297 /* dataref.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dataref.h; sourceTree = "<group>"; };
 		F6AF9EBC2D06F84900530297 /* dataref.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dataref.cpp; sourceTree = "<group>"; };
 		F6AF9EC52D078DB000530297 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -535,6 +543,10 @@
 		F6E73EDC2ED9CCA7000A8B6A /* profiles */ = {
 			isa = PBXGroup;
 			children = (
+				F6AAEE1E2F261A790020CF32 /* ff777-ursa-minor-throttle-profile.h */,
+				F6AAEE1F2F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp */,
+				F6AAEE202F261A790020CF32 /* zibo-ursa-minor-throttle-profile.h */,
+				F6AAEE212F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp */,
 				F6E73EDA2ED9CCA7000A8B6A /* toliss-ursa-minor-throttle-profile.h */,
 				F6E73EDB2ED9CCA7000A8B6A /* toliss-ursa-minor-throttle-profile.cpp */,
 			);
@@ -744,6 +756,8 @@
 				F6A1492F2E4F03A400FB8395 /* product-fmc.cpp in Sources */,
 				F6CC2B502F0E5F4B00C0A4D8 /* ff777-pdc-profile.cpp in Sources */,
 				F6A149302E4F03A400FB8395 /* toliss-fmc-profile.cpp in Sources */,
+				F6AAEE222F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp in Sources */,
+				F6AAEE232F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp in Sources */,
 				5DBA92322E6F4D71007328BC /* ff767-fmc-profile.cpp in Sources */,
 				F6A149312E4F03A400FB8395 /* laminar-airbus-fmc-profile.cpp in Sources */,
 				F67961952E31357E008031F1 /* usbdevice_lin.cpp in Sources */,
@@ -810,6 +824,8 @@
 				F635AD422E05697B005D6CDC /* bridge.mm in Sources */,
 				F6A77E792ED3620600061D03 /* segment-display.cpp in Sources */,
 				F6F6F4E92EBF976E00321C19 /* ButtonIdentificationView.swift in Sources */,
+				F6AAEE242F261A790020CF32 /* zibo-ursa-minor-throttle-profile.cpp in Sources */,
+				F6AAEE252F261A790020CF32 /* ff777-ursa-minor-throttle-profile.cpp in Sources */,
 				F621F80D2F1C264A00DDB31E /* jf146-fcu-efis-profile.cpp in Sources */,
 				F6F6F4EA2EBF976E00321C19 /* ButtonMapping.swift in Sources */,
 				F6D8E6C72ED059390041C4FB /* product-ecam32.cpp in Sources */,

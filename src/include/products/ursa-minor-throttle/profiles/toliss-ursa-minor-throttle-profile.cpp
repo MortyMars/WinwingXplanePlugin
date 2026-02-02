@@ -107,10 +107,10 @@ const std::unordered_map<uint16_t, UrsaMinorThrottleButtonDef> &TolissUrsaMinorT
 
         {23, {"Engine mode selector pushed", ""}},
 
-        {24, {"Rudder trim Reset", "sim/flight_controls/rudder_trim_center"}},
-        {25, {"Rudder trim Nose Left", "sim/flight_controls/rudder_trim_left"}},
+        {24, {"Rudder trim Reset", "sim/flight_controls/rudder_trim_center", UrsaMinorThrottleDatarefType::EXECUTE_CMD_PHASED}},
+        {25, {"Rudder trim Nose Left", "sim/flight_controls/rudder_trim_left", UrsaMinorThrottleDatarefType::EXECUTE_CMD_PHASED}},
         {26, {"Rudder trim Idle", ""}},
-        {27, {"Rudder trim Nose Right", "sim/flight_controls/rudder_trim_right"}},
+        {27, {"Rudder trim Nose Right", "sim/flight_controls/rudder_trim_right", UrsaMinorThrottleDatarefType::EXECUTE_CMD_PHASED}},
 
         {28, {"Park brake OFF", "AirbusFBW/ParkBrake", UrsaMinorThrottleDatarefType::SET_VALUE, 0}},
         {29, {"Park brake ON", "AirbusFBW/ParkBrake", UrsaMinorThrottleDatarefType::SET_VALUE, 1}},
@@ -124,7 +124,7 @@ const std::unordered_map<uint16_t, UrsaMinorThrottleButtonDef> &TolissUrsaMinorT
         {35, {"Speedbrake full", ""}},
         {36, {"Speedbrake half", ""}},
         {37, {"Speedbrake stowed", ""}},
-        {38, {"Speedbrake armed", "sim/cockpit2/controls/speedbrake_ratio", UrsaMinorThrottleDatarefType::SPEEDBRAKE, -0.5}},
+        {38, {"Speedbrake armed", "sim/cockpit2/controls/speedbrake_ratio", UrsaMinorThrottleDatarefType::TOLISS_SPEEDBRAKE, -0.5}},
 
         {39, {"Reversers active L", ""}},
         {40, {"Reversers active R", ""}},
@@ -139,7 +139,7 @@ void TolissUrsaMinorThrottleProfile::buttonPressed(const UrsaMinorThrottleButton
     }
 
     auto datarefManager = Dataref::getInstance();
-    if (button->datarefType == UrsaMinorThrottleDatarefType::SPEEDBRAKE) {
+    if (button->datarefType == UrsaMinorThrottleDatarefType::TOLISS_SPEEDBRAKE) {
         bool shouldArm = phase == xplm_CommandBegin;
         datarefManager->set<float>(button->dataref.c_str(), shouldArm ? static_cast<float>(button->value) : 0.0f);
     } else if (button->datarefType == UrsaMinorThrottleDatarefType::SET_VALUE) {

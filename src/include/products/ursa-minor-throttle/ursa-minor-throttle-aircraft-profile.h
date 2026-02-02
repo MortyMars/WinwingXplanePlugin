@@ -8,21 +8,26 @@
 class ProductUrsaMinorThrottle;
 
 enum class UrsaMinorThrottleDatarefType : unsigned char {
-    EXECUTE_CMD = 1,
+    EXECUTE_CMD_ONCE = 1,
+    EXECUTE_CMD_ONCE_IF_CHANGED,
+    EXECUTE_MULTIPLE_CMD_ONCE,
+    EXECUTE_CMD_PHASED,
     SET_VALUE,
-    SPEEDBRAKE
+    SET_VALUE_USING_COMMANDS,
+    TOLISS_SPEEDBRAKE
 };
 
 struct UrsaMinorThrottleButtonDef {
         std::string name;
         std::string dataref;
-        UrsaMinorThrottleDatarefType datarefType = UrsaMinorThrottleDatarefType::EXECUTE_CMD;
+        UrsaMinorThrottleDatarefType datarefType = UrsaMinorThrottleDatarefType::EXECUTE_CMD_ONCE;
         double value = 0.0;
 };
 
 class UrsaMinorThrottleAircraftProfile {
     protected:
         ProductUrsaMinorThrottle *product;
+        std::unordered_map<std::string, int> datarefChangedCache = {};
 
     public:
         UrsaMinorThrottleAircraftProfile(ProductUrsaMinorThrottle *product) : product(product) {};
