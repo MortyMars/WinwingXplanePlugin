@@ -62,6 +62,10 @@ TolissFMCProfile::TolissFMCProfile(ProductFMC *product) : FMCAircraftProfile(pro
         Dataref::getInstance()->executeChangedCallbacksForDataref("AirbusFBW/MCDUIntegBrightness_Raw");
     });
 
+    Dataref::getInstance()->monitorExistingDataref<int>("AirbusFBW/AnnunMode", [this, product](int annunMode) {
+        product->setAllLedsEnabled(annunMode == 2);
+    });
+
     Dataref::getInstance()->monitorExistingDataref<std::vector<float>>("AirbusFBW/DUSelfTestTimeLeft", [this, product](std::vector<float> selfTestSecondsRemaining) {
         if (selfTestSecondsRemaining.size() < 8) {
             return;
