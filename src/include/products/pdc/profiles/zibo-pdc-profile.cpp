@@ -100,8 +100,8 @@ const std::unordered_map<PDCButtonIndex3N3M, PDCButtonDef> &ZiboPDCProfile::butt
                         {{40, 34}, {"Mins knob center", ""}},
                         {{41, 35}, {"Mins knob right slow", "custom", PDCDatarefType::ADD_MINIMUMS_REPEATING, 1.0}},
                         {{20, 36}, {"Mins knob right fast", std::string("laminar/B738/pfd/dh_") + pilotOrCopilot + "_up", PDCDatarefType::EXECUTE_CMD_PHASED}},
-                        {{42, 37}, {"Baro knob left slow", "", PDCDatarefType::ADD_BARO_REPEATING, -1.0}},
-                        {{43, 38}, {"Baro knob center", "custom"}},
+                        {{42, 37}, {"Baro knob left slow", "custom", PDCDatarefType::ADD_BARO_REPEATING, -1.0}},
+                        {{43, 38}, {"Baro knob center", ""}},
                         {{44, 39}, {"Baro knob right slow", "custom", PDCDatarefType::ADD_BARO_REPEATING, 1.0}},
                     })
         .first->second;
@@ -186,15 +186,14 @@ void ZiboPDCProfile::changeBaro() {
         return;
     }
 
-    std::string dataref = std::string("laminar/B738/EFIS/baro_sel_in_hg_") + (product->deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || product->deviceVariant == PDCDeviceVariant::VARIANT_3M_CAPTAIN ? "pilot" : "copilot");
-    bool isHPA = Dataref::getInstance()->get<bool>((std::string("laminar/B738/EFIS_control/") + (product->deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || product->deviceVariant == PDCDeviceVariant::VARIANT_3M_CAPTAIN ? "capt" : "fo") + "/baro_in_hpa").c_str());
-
     auto datarefManager = Dataref::getInstance();
+    bool isHPA = datarefManager->get<bool>((std::string("laminar/B738/EFIS_control/") + (product->deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || product->deviceVariant == PDCDeviceVariant::VARIANT_3M_CAPTAIN ? "capt" : "fo") + "/baro_in_hpa").c_str());
+    std::string dataref = std::string("laminar/B738/EFIS/baro_sel_in_hg_") + (product->deviceVariant == PDCDeviceVariant::VARIANT_3N_CAPTAIN || product->deviceVariant == PDCDeviceVariant::VARIANT_3M_CAPTAIN ? "pilot" : "copilot");
     float currentBaroInHg = datarefManager->get<float>(dataref.c_str());
     if (isHPA) {
         currentBaroInHg += baroDelta * 0.02953f;
     } else {
-        currentBaroInHg += baroDelta;
+        currentBaroInHg += baroDelta * 0.01f;
     }
     datarefManager->set<float>(dataref.c_str(), currentBaroInHg);
 }
