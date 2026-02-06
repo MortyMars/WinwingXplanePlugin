@@ -17,7 +17,7 @@ Laminar737FCUEfisProfile::Laminar737FCUEfisProfile(ProductFCUEfis *product) : FC
         if (brightness.size() < 4) {
             return;
         }
-        
+
         bool hasPower = Dataref::getInstance()->get<bool>("sim/cockpit/electrical/battery_on");
 
         // Use appropriate brightness index for 737 instruments
@@ -207,10 +207,11 @@ const std::unordered_map<uint16_t, FCUEfisButtonDef> &Laminar737FCUEfisProfile::
         {44, {"L_hPa", ""}},  // No hPa mode on default 737
 
         // ND mode selector (Left)
-        {45, {"L_MODE APP", "sim/instruments/EFIS_mode_dn"}},
-        {46, {"L_MODE VOR", "sim/instruments/EFIS_mode_dn"}},
-        {47, {"L_MODE MAP", "sim/instruments/map_zoom_in"}},
-        {48, {"L_MODE PLAN", "sim/instruments/EFIS_mode_up"}},
+        {45, {"L_MODE LS", "laminar/B738/EFIS_control/capt/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 0.0}},
+        {46, {"L_MODE VOR", "laminar/B738/EFIS_control/capt/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 1.0}},
+        {47, {"L_MODE NAV", "laminar/B738/EFIS_control/capt/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 2.0}},
+        {48, {"L_MODE ARC", "laminar/B738/EFIS_control/capt/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 2.0}},
+        {49, {"L_MODE PLAN", "laminar/B738/EFIS_control/capt/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 3.0}},
 
         // Range selector (Left)
         {50, {"L_RANGE 10", "sim/cockpit2/EFIS/map_range", FCUEfisDatarefType::SET_VALUE, 0.0}},
@@ -244,10 +245,11 @@ const std::unordered_map<uint16_t, FCUEfisButtonDef> &Laminar737FCUEfisProfile::
         {76, {"R_hPa", ""}},
 
         // ND mode selector (Right)
-        {77, {"R_MODE APP", "sim/instruments/EFIS_copilot_mode_dn"}},
-        {78, {"R_MODE VOR", "sim/instruments/EFIS_copilot_mode_dn"}},
-        {79, {"R_MODE MAP", "sim/instruments/EFIS_copilot_map_zoom_in"}},
-        {80, {"R_MODE PLAN", "sim/instruments/EFIS_copilot_mode_up"}},
+        {77, {"R_MODE LS", "laminar/B738/EFIS_control/fo/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 0.0}},
+        {78, {"R_MODE VOR", "laminar/B738/EFIS_control/fo/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 1.0}},
+        {79, {"R_MODE NAV", "laminar/B738/EFIS_control/fo/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 2.0}},
+        {80, {"R_MODE ARC", "laminar/B738/EFIS_control/fo/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 2.0}},
+        {81, {"R_MODE PLAN", "laminar/B738/EFIS_control/fo/map_mode_pos", FCUEfisDatarefType::SET_VALUE, 3.0}},
 
         // Range selector (Right)
         {82, {"R_RANGE 10", "sim/cockpit2/EFIS/map_range_copilot", FCUEfisDatarefType::SET_VALUE, 0.0}},
