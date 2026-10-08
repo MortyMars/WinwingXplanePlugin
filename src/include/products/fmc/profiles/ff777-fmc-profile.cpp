@@ -14,7 +14,8 @@ FlightFactor777FMCProfile::FlightFactor777FMCProfile(ProductFMC *product) : FMCA
 
     const std::string cdu = product->deviceVariant == FMCDeviceVariant::VARIANT_CAPTAIN ? "cduL" : (product->deviceVariant == FMCDeviceVariant::VARIANT_FIRSTOFFICER ? "cduR" : "cduC");
     Dataref::getInstance()->monitorExistingDataref<float>(("1-sim/" + cdu + "/brt").c_str(), [product, cdu](float brightness) {
-        uint8_t target = Dataref::getInstance()->get<bool>(("1-sim/" + cdu + "/ok").c_str()) ? brightness * 255 : 0;
+        // brt runs 0-2 (knob 0-270 deg); clamp so the upper half stays full instead of wrapping
+        uint8_t target = Dataref::getInstance()->get<bool>(("1-sim/" + cdu + "/ok").c_str()) ? std::clamp(brightness, 0.0f, 1.0f) * 255 : 0;
         product->setLedBrightness(FMCLed::SCREEN_BACKLIGHT, target);
     },
         this);
