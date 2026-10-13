@@ -279,6 +279,19 @@ void FlightFactor777FMCProfile::buttonPressed(const FMCButtonDef *button, XPLMCo
     }
 
     auto datarefManager = Dataref::getInstance();
+
+    // The new-style CDU (is7newCdu) has BRT up/dn buttons instead of the rotary
+    const auto &keyMap = buttonKeyMap();
+    auto brtUp = keyMap.find(FMCKey::BRIGHTNESS_UP);
+    auto brtDown = keyMap.find(FMCKey::BRIGHTNESS_DOWN);
+    bool isBrtUp = brtUp != keyMap.end() && brtUp->second == button;
+    bool isBrtDown = brtDown != keyMap.end() && brtDown->second == button;
+    if ((isBrtUp || isBrtDown) && datarefManager->get<bool>("1-sim/model/is7newCdu")) {
+        const std::string cdu = product->deviceVariant == FMCDeviceVariant::VARIANT_CAPTAIN ? "cduL" : (product->deviceVariant == FMCDeviceVariant::VARIANT_FIRSTOFFICER ? "cduR" : "cduC");
+        datarefManager->executeCommand(("1-sim/command/" + cdu + (isBrtUp ? "BrtButton_up" : "BrtButton_dn")).c_str(), phase);
+        return;
+    }
+
     if (button->datarefType == FMCDatarefType::SET_VALUE || button->datarefType == FMCDatarefType::SET_VALUE_PHASED) {
         double value = std::fabs(button->value) < std::numeric_limits<double>::epsilon() ? 1.0 : button->value;
         if (button->datarefType == FMCDatarefType::SET_VALUE && phase != xplm_CommandBegin) {
