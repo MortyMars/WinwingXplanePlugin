@@ -44,7 +44,6 @@ class FFA320FCUEfisProfile : public FCUEfisAircraftProfile {
         double fcu(const std::string &leaf) const;
 
         void stepBaro(bool captainSide, bool increase);
-        void setBaroStd(bool captainSide, bool standard);
         void pressClickObject(const std::string &command, bool down);
         void setAltitudeStep(bool thousands);
         void syncAltitudeStep();
