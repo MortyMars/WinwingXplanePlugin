@@ -53,8 +53,8 @@ const std::unordered_map<PDCButtonIndex3N3M, PDCButtonDef> &XCraftsErjPDCProfile
         {{22, 23}, {"Baro knob right fast", "custom", PDCDatarefType::ADD_BARO_REPEATING, 1.0}},
         {{23, 24}, {"Mins RADIO", "sim/cockpit/misc/radio_altimeter_minimum", PDCDatarefType::SET_VALUE, 0.0}},
         {{24, 25}, {"Mins BARO", "sim/cockpit/misc/barometer_minimum", PDCDatarefType::SET_VALUE, 0.0}},
-        {{25, 26}, {"Baro inHg", "sim/cockpit2/gauges/actuators/barometer_setting_in_hg_pilot", PDCDatarefType::SET_VALUE, 0.0}},
-        {{26, 27}, {"Baro STD", "sim/cockpit2/gauges/actuators/barometer_setting_is_std_pilot", PDCDatarefType::SET_VALUE, 1.0}},
+        {{25, 26}, {"Baro inHg", "sim/physics/metric_press", PDCDatarefType::SET_VALUE, 0.0}},
+        {{26, 27}, {"Baro HPA", "sim/physics/metric_press", PDCDatarefType::SET_VALUE, 1.0}},
         {{27, 28}, {"Map APP", ""}},
         {{28, 29}, {"Map VOR", ""}},
         {{29, 30}, {"Map MAP", "map_plan_mode", PDCDatarefType::SET_VALUE, 0.0}},
@@ -115,6 +115,10 @@ void XCraftsErjPDCProfile::buttonPressed(const PDCButtonDef *button, XPLMCommand
         rangeDelta = phase == xplm_CommandBegin ? static_cast<char>(button->value) : 0;
         rangeLastCommandTime = XPLMGetElapsedTime() + 1.0f;
         changeRange();
+    } else if (phase == xplm_CommandBegin && button->dataref == "sim/cockpit2/gauges/actuators/barometer_setting_is_std_pilot") {
+        // STD is a push toggle
+        bool isSTD = datarefManager->get<bool>(button->dataref.c_str());
+        datarefManager->set<int>(button->dataref.c_str(), isSTD ? 0 : 1);
     } else if (phase == xplm_CommandBegin && button->datarefType == PDCDatarefType::SET_VALUE) {
         datarefManager->set<double>(button->dataref.c_str(), button->value);
     } else if (phase == xplm_CommandBegin && button->datarefType == PDCDatarefType::EXECUTE_CMD_ONCE) {

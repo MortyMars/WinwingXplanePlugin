@@ -54,11 +54,11 @@ bool XCraftsErjPAP3MCPProfile::IsEligible() {
 
 const std::vector<std::string> &XCraftsErjPAP3MCPProfile::displayDatarefs() const {
     static const std::vector<std::string> datarefs = {
-        "XCrafts/ERJ/autopilot/airspeed_dial_kts_mach",
+        "sim/cockpit2/autopilot/airspeed_dial_kts_mach",
         "sim/cockpit/autopilot/airspeed_is_mach",
         "sim/cockpit/autopilot/heading_mag",
-        "XCrafts/ERJ/autopilot/altitude",
-        "XCrafts/ERJ/autopilot/vertical_velocity",
+        "sim/cockpit/autopilot/altitude",
+        "sim/cockpit/autopilot/vertical_velocity",
         "sim/cockpit/radios/nav1_obs_degm",
         "sim/cockpit/radios/nav2_obs_degm",
         "sim/cockpit/autopilot/autopilot_mode",
@@ -88,16 +88,16 @@ const std::unordered_map<uint16_t, PAP3MCPButtonDef> &XCraftsErjPAP3MCPProfile::
         // Encoder button-press events
         {17, {"CRS CAPT DEC", "sim/radios/obs1_down"}},
         {18, {"CRS CAPT INC", "sim/radios/obs1_up"}},
-        {19, {"SPD DEC", "XCrafts/ERJ/autopilot/airspeed_dial_kts_mach", PAP3MCPDatarefType::ADJUST_VALUE, -1.0}},
-        {20, {"SPD INC", "XCrafts/ERJ/autopilot/airspeed_dial_kts_mach", PAP3MCPDatarefType::ADJUST_VALUE, 1.0}},
+        {19, {"SPD DEC", "sim/autopilot/airspeed_down"}},
+        {20, {"SPD INC", "sim/autopilot/airspeed_up"}},
         {21, {"HDG DEC", "sim/autopilot/heading_down"}},
         {22, {"HDG INC", "sim/autopilot/heading_up"}},
-        {23, {"ALT DEC", "XCrafts/ERJ/autopilot/altitude", PAP3MCPDatarefType::ADJUST_VALUE, -100.0}},
-        {24, {"ALT INC", "XCrafts/ERJ/autopilot/altitude", PAP3MCPDatarefType::ADJUST_VALUE, 100.0}},
+        {23, {"ALT DEC", "sim/autopilot/altitude_down"}},
+        {24, {"ALT INC", "sim/autopilot/altitude_up"}},
         {25, {"CRS FO DEC", "sim/radios/obs2_down"}},
         {26, {"CRS FO INC", "sim/radios/obs2_up"}},
-        {38, {"VS DEC", "XCrafts/ERJ/autopilot/vertical_velocity", PAP3MCPDatarefType::ADJUST_VALUE, -100.0}},
-        {39, {"VS INC", "XCrafts/ERJ/autopilot/vertical_velocity", PAP3MCPDatarefType::ADJUST_VALUE, 100.0}},
+        {38, {"VS DEC", "sim/autopilot/vertical_speed_down"}},
+        {39, {"VS INC", "sim/autopilot/vertical_speed_up"}},
     };
     return buttons;
 }
@@ -105,10 +105,10 @@ const std::unordered_map<uint16_t, PAP3MCPButtonDef> &XCraftsErjPAP3MCPProfile::
 const std::vector<PAP3MCPEncoderDef> &XCraftsErjPAP3MCPProfile::encoderDefs() const {
     static const std::vector<PAP3MCPEncoderDef> encoders = {
         {0, "CRS CAPT", "sim/radios/obs1_up", "sim/radios/obs1_down"},
-        {1, "SPD", "dataref:XCrafts/ERJ/autopilot/airspeed_dial_kts_mach:1.0", "dataref:XCrafts/ERJ/autopilot/airspeed_dial_kts_mach:-1.0"},
+        {1, "SPD", "sim/autopilot/airspeed_up", "sim/autopilot/airspeed_down"},
         {2, "HDG", "sim/autopilot/heading_up", "sim/autopilot/heading_down"},
-        {3, "ALT", "dataref:XCrafts/ERJ/autopilot/altitude:100.0", "dataref:XCrafts/ERJ/autopilot/altitude:-100.0"},
-        {4, "V/S", "dataref:XCrafts/ERJ/autopilot/vertical_velocity:100.0", "dataref:XCrafts/ERJ/autopilot/vertical_velocity:-100.0"},
+        {3, "ALT", "sim/autopilot/altitude_up", "sim/autopilot/altitude_down"},
+        {4, "V/S", "sim/autopilot/vertical_speed_up", "sim/autopilot/vertical_speed_down"},
         {5, "CRS FO", "sim/radios/obs2_up", "sim/radios/obs2_down"},
     };
     return encoders;
@@ -123,7 +123,7 @@ void XCraftsErjPAP3MCPProfile::updateDisplayData(PAP3MCPDisplayData &data) {
     data.showCourse = true;
 
     bool isMach = dr->getCached<bool>("sim/cockpit/autopilot/airspeed_is_mach");
-    float speedRaw = dr->getCached<float>("XCrafts/ERJ/autopilot/airspeed_dial_kts_mach");
+    float speedRaw = dr->getCached<float>("sim/cockpit2/autopilot/airspeed_dial_kts_mach");
 
     if (isMach && speedRaw > 0) {
         int machHundredths = static_cast<int>(std::round(speedRaw * 100));
@@ -136,10 +136,10 @@ void XCraftsErjPAP3MCPProfile::updateDisplayData(PAP3MCPDisplayData &data) {
     float headingRaw = dr->getCached<float>("sim/cockpit/autopilot/heading_mag");
     data.heading = (static_cast<int>(headingRaw) % 360 + 360) % 360;
 
-    float altRaw = dr->getCached<float>("XCrafts/ERJ/autopilot/altitude");
+    float altRaw = dr->getCached<float>("sim/cockpit/autopilot/altitude");
     data.altitude = (static_cast<int>(altRaw) / 100) * 100;
 
-    float vsRaw = dr->getCached<float>("XCrafts/ERJ/autopilot/vertical_velocity");
+    float vsRaw = dr->getCached<float>("sim/cockpit/autopilot/vertical_velocity");
     data.verticalSpeed = static_cast<float>((static_cast<int>(vsRaw) / 100) * 100);
 
     data.crsCapt = static_cast<int>(dr->getCached<float>("sim/cockpit/radios/nav1_obs_degm"));
