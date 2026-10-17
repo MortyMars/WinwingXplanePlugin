@@ -37,6 +37,7 @@ FF777FCUEfisProfile::FF777FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
         this);
 
     // We abuse the GPU hatch dataref to trigger an update when the UI is closed.
+    // Please leave Leds allocation as it is – THANK YOU !
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/anim/hatchGPU", [product](bool gpuHatchOpen) {
         Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/output/mcp/ok");
     },
@@ -47,12 +48,12 @@ FF777FCUEfisProfile::FF777FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
     },
         this);
 
-    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/mcpCaptAP", [this, product](bool engaged) {
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/mcpLNAV", [this, product](bool engaged) {
         product->setLedBrightness(FCUEfisLed::AP1_GREEN, engaged || isTestMode() ? 1 : 0);
     },
         this);
 
-    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/mcpFoAP", [this, product](bool engaged) {
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/mcpVNAV", [this, product](bool engaged) {
         product->setLedBrightness(FCUEfisLed::AP2_GREEN, engaged || isTestMode() ? 1 : 0);
     },
         this);
@@ -72,14 +73,85 @@ FF777FCUEfisProfile::FF777FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
     },
         this);
 
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/mcpCaptAP", [this, product](bool on) {
+        product->setLedBrightness(FCUEfisLed::EXPED_GREEN, on || isTestMode() ? 1 : 0);
+    },
+        this);
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/mcpFoAP", [this, product](bool on) {
+        product->setLedBrightness(FCUEfisLed::EXPED_GREEN, on || isTestMode() ? 1 : 0);
+    },
+        this);
+
+
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/capt/data_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISL_CSTR_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/fo/data_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISR_CSTR_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/capt/wpt_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISL_WPT_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/fo/wpt_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISR_WPT_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/capt/sta_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISL_VORD_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/fo/sta_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISR_VORD_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/capt/arpt_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISL_ARPT_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/efis/fo/arpt_toggle", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISR_ARPT_GREEN, armed || isTestMode() ? 1 : 0);
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/ckpt/mcpApDiscSwitch/anim", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISL_LS_GREEN, (armed ? 0 : 1) || isTestMode() ? 1 : 0);
+    }, this);
+    Dataref::getInstance()->monitorExistingDataref<int>("1-sim/ckpt/mcpApDiscSwitch/anim", [this, product](int armed) {
+        product->setLedBrightness(FCUEfisLed::EFISR_LS_GREEN, (armed ? 0 : 1) || isTestMode() ? 1 : 0);
+    }, this);
+
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/mcpFdLSwitch/anim", [this, product](bool on) {
         product->setLedBrightness(FCUEfisLed::EFISL_FD_GREEN, on || isTestMode() ? 1 : 0);
-    },
-        this);
+    }, this);
     Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/mcpFdRSwitch/anim", [this, product](bool on) {
         product->setLedBrightness(FCUEfisLed::EFISR_FD_GREEN, on || isTestMode() ? 1 : 0);
-    },
-        this);
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/cptCAUTION", [this, product](bool isCaution) {
+        bool isWarning = Dataref::getInstance()->getCached<bool>("1-sim/ckpt/lampsGlow/cptWARNING");
+        product->setLedBrightness(FCUEfisLed::EFISL_CSTR_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISL_WPT_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISL_VORD_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISL_NDB_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISL_ARPT_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/foCAUTION", [this, product](bool isCaution) {
+        bool isWarning = Dataref::getInstance()->getCached<bool>("1-sim/ckpt/lampsGlow/foWARNING");
+        product->setLedBrightness(FCUEfisLed::EFISR_CSTR_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISR_WPT_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISR_VORD_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISR_NDB_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+        product->setLedBrightness(FCUEfisLed::EFISR_ARPT_GREEN, isCaution || isWarning || isTestMode() ? 1 : 0);
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/cptWARNING", [this, product](bool on) {
+        Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/lampsGlow/cptCAUTION");
+    }, this);
+
+    Dataref::getInstance()->monitorExistingDataref<bool>("1-sim/ckpt/lampsGlow/foWARNING", [this, product](bool on) {
+        Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/lampsGlow/foCAUTION");
+    }, this);
+
+
 
     Dataref::getInstance()->monitorExistingDataref<int>("1-sim/ckpt/indLightTestSwitch/anim", [this, product](int isTest) {
         Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/output/mcp/ok");
@@ -91,6 +163,9 @@ FF777FCUEfisProfile::FF777FCUEfisProfile(ProductFCUEfis *product) : FCUEfisAircr
         Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/lampsGlow/mcpAT");
         Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/mcpFdLSwitch/anim");
         Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/mcpFdRSwitch/anim");
+        Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/lampsGlow/cptWARNING");
+        Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/lampsGlow/foWARNING");
+        Dataref::getInstance()->executeChangedCallbacksForDataref("1-sim/ckpt/mcpApDiscSwitch/anim");
     },
         this);
 
@@ -218,12 +293,12 @@ const std::unordered_map<uint16_t, FCUEfisButtonDef> &FF777FCUEfisProfile::butto
 
         {0, {"MACH", "1-sim/command/mcpIasMachButton_button"}},
         {1, {"LOC", "1-sim/command/mcpLocButton_button"}},
-        {2, {"TRK", "1-sim/command/mcpHdgTrkButton_button"}}, // TODO: Also add 1-sim/command/mcpVsFpaButton_button somehow
-        {3, {"AP1", "1-sim/command/mcpApLButton_button"}},
-        {4, {"AP2", "1-sim/command/mcpApRButton_button"}},
-        {5, {"A/THR", "1-sim/command/mcpAtButton_button"}}, // TODO: turn off? maar on moet deze linkse ref ook weer callen. 1-sim/comm/armBothAutothrottles
-        {6, {"EXPED", "1-sim/command/mcpAltRotary_push"}},
-        {7, {"METRIC", ""}},
+        {2, {"TRK", "1-sim/command/mcpHdgTrkButton_button"}}, 
+        {3, {"AP1", "1-sim/command/mcpLnavButton_button"}},     // Please leave this allocation as it is – THANK YOU !
+        {4, {"AP2", "1-sim/command/mcpVnavButton_button"}},     // Please leave this allocation as it is – THANK YOU !
+        {5, {"A/THR", "1-sim/command/mcpAtButton_button"}}, 
+        {6, {"EXPED", "1-sim/command/mcpApLButton_button"}},    // Please leave this allocation as it is – THANK YOU !
+        {7, {"METRIC", "1-sim/command/mcpVsFpaButton_button"}}, // Please leave this allocation as it is – THANK YOU !
         {8, {"APPR", "1-sim/command/mcpAppButton_button"}},
 
         // Rotary encoders - Speed

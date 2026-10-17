@@ -76,6 +76,9 @@
          BundleIdentifier = "com.laminar-research.X-Plane"
          FilePath = "/Users/ramon/X-Plane 12/X-Plane.app">
       </PathRunnable>
+      <MetalAPIValidationSettings
+         isEnabled = "No">
+      </MetalAPIValidationSettings>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
