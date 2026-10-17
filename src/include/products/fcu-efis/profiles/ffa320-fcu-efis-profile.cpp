@@ -238,12 +238,15 @@ void FFA320FCUEfisProfile::buildSnapshot() {
         const bool inHg = raw > 1500.0;
         const double baro = inHg ? raw / 100.0 : raw;
 
+        // BaroMode: 2 QNH, 1 QFE, STD below 1 (0 or negative, per user log).
+        const int mode = static_cast<int>(std::round(fcu(captain ? "BaroModeL" : "BaroModeR")));
         EfisDisplayValue value = {
             .displayEnabled = data.displayEnabled,
             .displayTest = false,
             .baro = "",
             .unitIsInHg = inHg,
-            .isStd = fcu(captain ? "BaroModeL" : "BaroModeR") > 0.5,
+            .isStd = mode < 1,
+            .showQfe = mode == 1,
         };
 
         if (!value.isStd && baro > 0.0) {
@@ -261,9 +264,9 @@ void FFA320FCUEfisProfile::buildSnapshot() {
         loggedRawValues = true;
         Logger::getInstance()->info("FF A320 FCU speed leaves: Speed=%f Select=%f Knots=%f Mach=%f managed=%f isMach=%f\n",
             fcu("Speed"), fcu("SpeedSelect"), fcu("SpeedKnots"), fcu("SpeedMach"), fcu("SpeedManaged"), fcu("SpeedIsMach"));
-        Logger::getInstance()->info("FF A320 FCU raw: mode=%f spd=%f/%f isMach=%f lat=%f alt=%f vs=%f fpa=%f baroL=%f baroR=%f\n",
+        Logger::getInstance()->info("FF A320 FCU raw: mode=%f spd=%f/%f isMach=%f lat=%f alt=%f vs=%f fpa=%f baroL=%f baroR=%f baroModeL=%f baroModeR=%f\n",
             fcu("Mode"), fcu("SpeedKnots"), fcu("SpeedMach"), fcu("SpeedIsMach"), fcu("Lateral"),
-            fcu("Altitude"), fcu("Vertical"), fcu("VerticalAngle"), fcu("BaroL"), fcu("BaroR"));
+            fcu("Altitude"), fcu("Vertical"), fcu("VerticalAngle"), fcu("BaroL"), fcu("BaroR"), fcu("BaroModeL"), fcu("BaroModeR"));
         Logger::getInstance()->info("FF A320 FCU vertical leaves: Vertical=%f Select=%f Speed=%f Angle=%f managed=%f type=%f\n",
             fcu("Vertical"), fcu("VerticalSelect"), fcu("VerticalSpeed"), fcu("VerticalAngle"), fcu("VerticalManaged"), fcu("VerticalType"));
     }
@@ -370,8 +373,7 @@ void FFA320FCUEfisProfile::updateDisplayData(FCUDisplayData &data) {
 const std::unordered_map<uint16_t, FCUEfisButtonDef> &FFA320FCUEfisProfile::buttonDefs() const {
     // EXECUTE_CMD_ONCE carries an X-Plane command the aircraft publishes for a
     // click object, SET_VALUE a shared value leaf under Aircraft.Cockpit.Panel
-    // written to an absolute detent, ADJUST_VALUE the STD/QNH reference and
-    // BAROMETER_* one step of the baro knob.
+    // written to an absolute detent and BAROMETER_* one step of the baro knob.
     static const std::unordered_map<uint16_t, FCUEfisButtonDef> buttons = {
         {0, {"MACH", "a320/Panel/FCU_Mach_button"}},
         {1, {"LOC", "a320/Panel/FCU_Localizer_button"}},
@@ -410,8 +412,8 @@ const std::unordered_map<uint16_t, FCUEfisButtonDef> &FFA320FCUEfisProfile::butt
         {36, {"L_VOR.D", "a320/Panel/EFIS_NavType3L_button"}},
         {37, {"L_NDB", "a320/Panel/EFIS_NavType4L_button"}},
         {38, {"L_ARPT", "a320/Panel/EFIS_NavType5L_button"}},
-        {39, {"L_STD PUSH", "L", FCUEfisDatarefType::ADJUST_VALUE, 0.0}},
-        {40, {"L_STD PULL", "L", FCUEfisDatarefType::ADJUST_VALUE, 1.0}},
+        {39, {"L_STD PUSH", "a320/Panel/EFIS_BaroModeL_switch_push"}},
+        {40, {"L_STD PULL", "a320/Panel/EFIS_BaroModeL_switch_pull"}},
         {41, {"L_PRESS DEC", "custom", FCUEfisDatarefType::BAROMETER_PILOT, -1.0}},
         {42, {"L_PRESS INC", "custom", FCUEfisDatarefType::BAROMETER_PILOT, 1.0}},
         {43, {"L_inHg", "EFIS_BaroTypeL.Target", FCUEfisDatarefType::SET_VALUE, 0.0}},
@@ -443,8 +445,8 @@ const std::unordered_map<uint16_t, FCUEfisButtonDef> &FFA320FCUEfisProfile::butt
         {68, {"R_VOR.D", "a320/Panel/EFIS_NavType3R_button"}},
         {69, {"R_NDB", "a320/Panel/EFIS_NavType4R_button"}},
         {70, {"R_ARPT", "a320/Panel/EFIS_NavType5R_button"}},
-        {71, {"R_STD PUSH", "R", FCUEfisDatarefType::ADJUST_VALUE, 0.0}},
-        {72, {"R_STD PULL", "R", FCUEfisDatarefType::ADJUST_VALUE, 1.0}},
+        {71, {"R_STD PUSH", "a320/Panel/EFIS_BaroModeR_switch_push"}},
+        {72, {"R_STD PULL", "a320/Panel/EFIS_BaroModeR_switch_pull"}},
         {73, {"R_PRESS DEC", "custom", FCUEfisDatarefType::BAROMETER_FO, -1.0}},
         {74, {"R_PRESS INC", "custom", FCUEfisDatarefType::BAROMETER_FO, 1.0}},
         {75, {"R_inHg", "EFIS_BaroTypeR.Target", FCUEfisDatarefType::SET_VALUE, 0.0}},
@@ -546,7 +548,10 @@ void FFA320FCUEfisProfile::syncAltitudeStep() {
 // as push. Rest is fixed, since the published command may already have moved
 // the knob. The aircraft samples it per frame, so the pulse is held past release.
 void FFA320FCUEfisProfile::pressModeSwitch(const std::string &command, bool down) {
-    const size_t start = command.find("FCU_");
+    size_t start = command.find("FCU_");
+    if (start == std::string::npos) {
+        start = command.find("EFIS_");
+    }
     const size_t end = command.find("_switch_");
     if (start == std::string::npos || end == std::string::npos || end <= start) {
         return;
@@ -624,16 +629,6 @@ void FFA320FCUEfisProfile::stepBaro(bool captainSide, bool increase) {
     FFSharedValues::getInstance()->setNumber(path, baro + (increase ? 1.0 : -1.0));
 }
 
-void FFA320FCUEfisProfile::setBaroStd(bool captainSide, bool standard) {
-    const std::string side = captainSide ? "L" : "R";
-
-    if (runCommand("a320/Panel/EFIS_BaroMode" + side + "_switch_" + (standard ? "pull" : "push"))) {
-        return;
-    }
-
-    FFSharedValues::getInstance()->setNumber(fcuPath + "BaroMode" + side, standard ? 1.0 : 0.0);
-}
-
 // A click object the aircraft animates down and back up. Firing it as one
 // instant command left the cockpit button latched and unclickable, so press and
 // release are carried through as the real button's are.
@@ -667,10 +662,6 @@ void FFA320FCUEfisProfile::buttonPressed(const FCUEfisButtonDef *button, XPLMCom
 
         case FCUEfisDatarefType::SET_VALUE:
             FFSharedValues::getInstance()->setNumber(PanelPath + button->dataref, button->value);
-            break;
-
-        case FCUEfisDatarefType::ADJUST_VALUE:
-            setBaroStd(button->dataref == "L", button->value > 0.5);
             break;
 
         case FCUEfisDatarefType::BAROMETER_PILOT:
