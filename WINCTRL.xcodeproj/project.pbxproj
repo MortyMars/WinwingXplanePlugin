@@ -126,8 +126,6 @@
 		F64BE3EE2E1BF625003C1B73 /* usbcontroller_lin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F64BE3E32E1BF625003C1B73 /* usbcontroller_lin.cpp */; };
 		F65361762FA244A90039C2C9 /* power-scheme.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F65361752FA244A90039C2C9 /* power-scheme.cpp */; };
 		F65361772FA244A90039C2C9 /* power-scheme.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F65361752FA244A90039C2C9 /* power-scheme.cpp */; };
-		F6FCU3200000000000000003 /* ffa320-fcu-efis-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6FCU3200000000000000002 /* ffa320-fcu-efis-profile.cpp */; };
-		F6FCU3200000000000000004 /* ffa320-fcu-efis-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6FCU3200000000000000002 /* ffa320-fcu-efis-profile.cpp */; };
 		F662AA0A304C332300FAC102 /* ffa320-fmc-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F662AA09304C332300FAC102 /* ffa320-fmc-profile.cpp */; };
 		F662AA0B304C332300FAC102 /* ffa320-fmc-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F662AA09304C332300FAC102 /* ffa320-fmc-profile.cpp */; };
 		F662AA0E304C333C00FAC102 /* ffsharedvalues.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F662AA0D304C333C00FAC102 /* ffsharedvalues.cpp */; };
@@ -268,6 +266,8 @@
 		F6F6F4E92EBF976E00321C19 /* ButtonIdentificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F6F4E72EBF976E00321C19 /* ButtonIdentificationView.swift */; };
 		F6F6F4EA2EBF976E00321C19 /* ButtonMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F6F4E82EBF976E00321C19 /* ButtonMapping.swift */; };
 		F6FBC55F2E3A3E15004E5F42 /* FCUEfisControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6FBC55E2E3A3E15004E5F42 /* FCUEfisControlView.swift */; };
+		F6FCU3200000000000000003 /* ffa320-fcu-efis-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6FCU3200000000000000002 /* ffa320-fcu-efis-profile.cpp */; };
+		F6FCU3200000000000000004 /* ffa320-fcu-efis-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F6FCU3200000000000000002 /* ffa320-fcu-efis-profile.cpp */; };
 		F6FF5F202E4B5CC5002508F6 /* XPWidgets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6FF5F1F2E4B5CC5002508F6 /* XPWidgets.framework */; };
 		F6FF5F212E4B5CC5002508F6 /* XPLM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6FF5F1E2E4B5CC5002508F6 /* XPLM.framework */; };
 		FF35DA7A0000000000000012 /* ff350-fmc-profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF35DA7A0000000000000011 /* ff350-fmc-profile.cpp */; };
@@ -497,8 +497,6 @@
 		F6B520E72FC7676F00A04562 /* xcrafts-erj-ursa-minor-throttle-profile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "xcrafts-erj-ursa-minor-throttle-profile.cpp"; sourceTree = "<group>"; };
 		F6B79CFC2F4A5BFD00517E6A /* logger.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = logger.hpp; sourceTree = "<group>"; };
 		F6BB75712E32634700C2B21F /* toliss-fcu-efis-profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "toliss-fcu-efis-profile.h"; sourceTree = "<group>"; };
-		F6FCU3200000000000000001 /* ffa320-fcu-efis-profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ffa320-fcu-efis-profile.h"; sourceTree = "<group>"; };
-		F6FCU3200000000000000002 /* ffa320-fcu-efis-profile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "ffa320-fcu-efis-profile.cpp"; sourceTree = "<group>"; };
 		F6BB75722E32634700C2B21F /* toliss-fcu-efis-profile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "toliss-fcu-efis-profile.cpp"; sourceTree = "<group>"; };
 		F6BB75742E32634700C2B21F /* fcu-efis-aircraft-profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "fcu-efis-aircraft-profile.h"; sourceTree = "<group>"; };
 		F6BB75752E32634700C2B21F /* product-fcu-efis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "product-fcu-efis.h"; sourceTree = "<group>"; };
@@ -554,6 +552,8 @@
 		F6F6F4E72EBF976E00321C19 /* ButtonIdentificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonIdentificationView.swift; sourceTree = "<group>"; };
 		F6F6F4E82EBF976E00321C19 /* ButtonMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonMapping.swift; sourceTree = "<group>"; };
 		F6FBC55E2E3A3E15004E5F42 /* FCUEfisControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCUEfisControlView.swift; sourceTree = "<group>"; };
+		F6FCU3200000000000000001 /* ffa320-fcu-efis-profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ffa320-fcu-efis-profile.h"; sourceTree = "<group>"; };
+		F6FCU3200000000000000002 /* ffa320-fcu-efis-profile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "ffa320-fcu-efis-profile.cpp"; sourceTree = "<group>"; };
 		F6FF5F1E2E4B5CC5002508F6 /* XPLM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPLM.framework; path = SDK/Libraries/Mac/XPLM.framework; sourceTree = "<group>"; };
 		F6FF5F1F2E4B5CC5002508F6 /* XPWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XPWidgets.framework; path = SDK/Libraries/Mac/XPWidgets.framework; sourceTree = "<group>"; };
 		FF35DA7A0000000000000010 /* ff350-fmc-profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ff350-fmc-profile.h"; sourceTree = "<group>"; };
@@ -1182,7 +1182,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					F6827DF72E0564F700382B28 = {
 						CreatedOnToolsVersion = 26.0;
@@ -1566,8 +1566,9 @@
 				);
 				MACH_O_TYPE = mh_bundle;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				XPSDK_ROOT = SDK;
 			};
 			name = Debug;
@@ -1642,6 +1643,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "${TARGET_NAME}";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				XPSDK_ROOT = SDK;
 			};
@@ -1668,7 +1670,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DNDEBUG",
@@ -1713,7 +1715,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DNDEBUG",
@@ -1960,8 +1962,9 @@
 				);
 				MACH_O_TYPE = mh_bundle;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				XPSDK_ROOT = SDK;
 			};
 			name = "Debug (x86_64)";
@@ -1987,7 +1990,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DNDEBUG",

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1640"
-   version = "1.7">
+   LastUpgradeVersion = "2700"
+   version = "2.2">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES"
@@ -11,7 +11,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;cleaned_product_name=&quot;${PRODUCT_NAME//-mac/}&quot;&#10;cleaned_product_name=&quot;${cleaned_product_name//-win/}&quot;&#10;cleaned_product_name=&quot;${cleaned_product_name//-lin/}&quot;&#10;folder=&quot;$HOME/X-Plane 12/Resources/plugins/${cleaned_product_name}&quot;&#10;&#10;case &quot;$OSTYPE&quot; in&#10;darwin*) os_folder=&quot;mac_x64&quot; ;;&#10;linux*) os_folder=&quot;lin_x64&quot; ;;&#10;msys*) os_folder=&quot;win_x64&quot; ;;&#10;*) os_folder=&quot;unknown&quot; ;;&#10;esac&#10;&#10;[ &quot;$os_folder&quot; != &quot;unknown&quot; ] &amp;&amp; mkdir -p &quot;$folder/$os_folder&quot; &amp;&amp; cp &quot;$BUILT_PRODUCTS_DIR/$EXECUTABLE_PATH&quot; &quot;$folder/$os_folder/&quot;&#10;">
+               scriptText = "cleaned_product_name=&quot;${PRODUCT_NAME//-mac/}&quot;&#10;cleaned_product_name=&quot;${cleaned_product_name//-win/}&quot;&#10;cleaned_product_name=&quot;${cleaned_product_name//-lin/}&quot;&#10;folder=&quot;$HOME/X-Plane 12/Resources/plugins/${cleaned_product_name}&quot;&#10;&#10;[ ! -d &quot;$folder/fonts&quot; ] &amp;&amp; mkdir -p &quot;$folder/fonts&quot;&#10;[ -d &quot;$PROJECT_DIR/fonts&quot; ] &amp;&amp; rsync -a --exclude=&quot;.gitkeep&quot; &quot;$PROJECT_DIR/fonts/&quot; &quot;$folder/fonts/&quot; || true&#10;&#10;&#10;case &quot;$OSTYPE&quot; in&#10;darwin*) os_folder=&quot;mac_x64&quot; ;;&#10;linux*) os_folder=&quot;lin_x64&quot; ;;&#10;msys*) os_folder=&quot;win_x64&quot; ;;&#10;*) os_folder=&quot;unknown&quot; ;;&#10;esac&#10;&#10;[ &quot;$os_folder&quot; != &quot;unknown&quot; ] &amp;&amp; mkdir -p &quot;$folder/$os_folder&quot; &amp;&amp; cp &quot;$BUILT_PRODUCTS_DIR/$EXECUTABLE_PATH&quot; &quot;$folder/$os_folder/&quot;&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
@@ -25,6 +25,15 @@
          </ExecutionAction>
       </PostActions>
       <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <AutocreatedTestPlanReference>
+            </AutocreatedTestPlanReference>
+         </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "YES"
@@ -49,10 +58,9 @@
       shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
-      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
-      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      checkedAllocationsOption = "1"
+      buildConfiguration = "Release"
+      selectedDebuggerIdentifier = ""
+      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       customWorkingDirectory = "/Users/ramon/X-Plane 12"
@@ -68,13 +76,9 @@
          BundleIdentifier = "com.laminar-research.X-Plane"
          FilePath = "/Users/ramon/X-Plane 12/X-Plane.app">
       </PathRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "OPENSSL_armcap"
-            value = "0"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
+      <MetalAPIValidationSettings
+         isEnabled = "No">
+      </MetalAPIValidationSettings>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -82,6 +86,10 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
+      <PathRunnable
+         runnableDebuggingMode = "0"
+         FilePath = "/Users/martial/X-Plane 12/X-Plane.app">
+      </PathRunnable>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
