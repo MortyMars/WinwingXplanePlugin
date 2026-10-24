@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Added the “export” command to initialise the ‘CMAKE_OSX_ARCHITECTURES’ macOS variable by default. 
+# Without this initialisation, assigning a value to the variable later does not appear to work, and the
+# creation of a universal binary – whilst possible with a compatible version of the SDK – does not occur.
+export CMAKE_OSX_ARCHITECTURES="x86_64"
+
 # ---------------------------------------------------------------------------
 # Project configuration. This block is the ONLY part that differs between the
 # WINCTRL, Boarderline and ToLiss MCDU Plus copies of this script. Everything
@@ -172,6 +177,20 @@ for platform in $PLATFORMS; do
         strip --strip-debug --strip-unneeded $BIN.stripped && \
         objcopy --add-gnu-debuglink=$BIN.debug $BIN.stripped"
     else
+        # The SDK version test for the macOS target architecture has been moved from ‘toolchain-mac.cmake’
+        # to here, allowing CMake to better handle the desired parameters.
+        if [ "$SDK_VERSION" -ge 400 ]; then
+            CMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        else
+            CMAKE_OSX_ARCHITECTURES="x86_64"
+        fi
+        echo
+        echo "============CMAKE PARAMS FOR MAC================="
+        echo "TOOLCHAIN FILE CALLED : 'toolchain-$platform.cmake'"
+        echo "SDK VERSION DETECTED  : '$SDK_VERSION'"
+        echo "MAC ARCHITECTURE CIBLE: '$CMAKE_OSX_ARCHITECTURES'"
+        echo
+
         cmake -DCMAKE_TOOLCHAIN_FILE=toolchain-$platform.cmake -DSDK_VERSION=$SDK_VERSION -Bbuild/$platform -H.
         make -C build/$platform -j$JOBS
     fi

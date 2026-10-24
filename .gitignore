@@ -9,6 +9,8 @@ build/
 dist/
 .cache/
 .idea/
+*.OLD
+
 
 CMakeLists.txt.user
 CMakeCache.txt

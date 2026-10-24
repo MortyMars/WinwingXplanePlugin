@@ -8,11 +8,3 @@ SET(CMAKE_CXX_COMPILER clang++)
 # plugins that required macOS 26). arm64 slices clamp to 11.0 regardless, which
 # is expected; the value below governs the x86_64 slice.
 SET(CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
-
-if(DEFINED SDK_VERSION AND NOT SDK_VERSION STREQUAL "")
-  if(SDK_VERSION GREATER_EQUAL 400)
-      SET(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
-  else()
-      SET(CMAKE_OSX_ARCHITECTURES "x86_64")
-  endif()
-endif()
